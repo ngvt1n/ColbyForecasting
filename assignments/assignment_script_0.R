@@ -17,7 +17,7 @@ db = brickman_database()
 
 # filter the buoys to pull out just N01
 buoys = buoys |> 
-  filter(id == "N01")  # not3 the double '=='
+  filter(id == "N01")  # note the double '=='
 
 # filter the database to just the current scenario monthlies
 db = db |> 

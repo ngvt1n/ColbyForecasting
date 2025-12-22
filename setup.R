@@ -7,7 +7,7 @@
 packages = list(
   CRAN = c("remotes", "usethis", "ggplot2", "readr", "tidyr", "tidymodels",  
            "imager", "stars", "rnaturalearth", "robis", "httr", "yaml", 
-           "spatialsample", "workflowsets", "effectplots", "ranger", 
+           "spatialsample", "workflowsets", "effectplots", "ranger", "ggokabeito",
            "bundle", "butcher",  "tidysdm", "sf", "dplyr", "patchwork"),
   GITHUB = list(
     ColbyForecastingDocs = c(repos = "BigelowLab/ColbyForecastingDocs", ref = "main"))

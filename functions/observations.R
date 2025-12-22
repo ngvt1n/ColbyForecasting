@@ -14,7 +14,8 @@ read_observations = function(scientificname = "Mola mola",
   # Happy coding!
   
   # read in the raw data
-  x = read_obis(scientificname, ...)
+  x = read_obis(scientificname, ...) |>
+    dplyr::mutate(month = factor(month, levels = month.abb))
   
   # if the user provided a non-NULL filter by year
   if (!is.null(minimum_year)){

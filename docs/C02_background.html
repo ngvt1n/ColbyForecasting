@@ -224,19 +224,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#setup" id="toc-setup" class="nav-link active" data-scroll-target="#setup"><span class="header-section-number">1</span> Setup</a>
   <ul class="collapse">
   <li><a href="#thinning-observations" id="toc-thinning-observations" class="nav-link" data-scroll-target="#thinning-observations"><span class="header-section-number">1.1</span> Thinning observations</a></li>
-  <li><a href="#thinning-while-aggregating-array-cells" id="toc-thinning-while-aggregating-array-cells" class="nav-link" data-scroll-target="#thinning-while-aggregating-array-cells"><span class="header-section-number">1.2</span> Thinning while aggregating array cells</a></li>
+  <li><a href="#weighted-sampling" id="toc-weighted-sampling" class="nav-link" data-scroll-target="#weighted-sampling"><span class="header-section-number">1.2</span> Weighted sampling</a></li>
   <li><a href="#randomly-sample-background-points" id="toc-randomly-sample-background-points" class="nav-link" data-scroll-target="#randomly-sample-background-points"><span class="header-section-number">1.3</span> Randomly sample background points</a></li>
   </ul></li>
-  <li><a href="#model-input-per-month" id="toc-model-input-per-month" class="nav-link" data-scroll-target="#model-input-per-month"><span class="header-section-number">2</span> Model input per month</a>
-  <ul class="collapse">
-  <li><a href="#a-function-we-can-reuse" id="toc-a-function-we-can-reuse" class="nav-link" data-scroll-target="#a-function-we-can-reuse"><span class="header-section-number">2.1</span> A function we can reuse</a></li>
-  </ul></li>
-  <li><a href="#reusing-the-function-in-a-loop" id="toc-reusing-the-function-in-a-loop" class="nav-link" data-scroll-target="#reusing-the-function-in-a-loop"><span class="header-section-number">3</span> Reusing the function in a loop</a></li>
-  <li><a href="#listing-the-output-files" id="toc-listing-the-output-files" class="nav-link" data-scroll-target="#listing-the-output-files"><span class="header-section-number">4</span> Listing the output files</a></li>
-  <li><a href="#reading-the-files" id="toc-reading-the-files" class="nav-link" data-scroll-target="#reading-the-files"><span class="header-section-number">5</span> Reading the files</a></li>
-  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap"><span class="header-section-number">6</span> Recap</a></li>
-  <li><a href="#coding-assignment-c02" id="toc-coding-assignment-c02" class="nav-link" data-scroll-target="#coding-assignment-c02"><span class="header-section-number">7</span> Coding Assignment C02</a></li>
-  <li><a href="#challenge-c02" id="toc-challenge-c02" class="nav-link" data-scroll-target="#challenge-c02"><span class="header-section-number">8</span> Challenge C02</a></li>
+  <li><a href="#recap" id="toc-recap" class="nav-link" data-scroll-target="#recap"><span class="header-section-number">2</span> Recap</a></li>
+  <li><a href="#coding-assignment-c02" id="toc-coding-assignment-c02" class="nav-link" data-scroll-target="#coding-assignment-c02"><span class="header-section-number">3</span> Coding Assignment C02</a></li>
   </ul>
 </nav>
     </div>
@@ -267,22 +259,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </blockquote>
 <p>Traditional ecological surveys are systematic, for a given species survey data sets tell us where the species is found and where it is absent. Using an observational data set (like <a href="https://obis.org">OBIS</a>) we only know where the species is found, which leaves us guessing about where they might not be found. This difference is what distinguishes a <em>presence-abscence</em> data set from a <em>presence-only</em> data set, and this difference guides the modeling process.</p>
 <p>When we model species distributions we are trying to define the environments where we should expect to find a species as well as the environments we would not expect to find a species. With OBIS data we have in hand the locations of observations, and we can extract the environmental data at those locations. To characterize the unoccupied environments we are going to have to sample what is called “background” (aka “background points” and “pseudo-absences”.)</p>
-<p>We assume that we want the number of background points to be roughoy balanced with the number of observations. What balance means is open to interpretation, but if we have 100 observations then we woud like to have 50 to 200 background points in order to be balanced.</p>
+<p>We assume that we want the number of background points to be roughoy balanced with the number of observations. What balance means is open to interpretation, but if we have 100 observations then we would like to have 50 to 200 background points in order to be balanced. One can spend a lot of time of time finding the most appropriate balance.</p>
 <p>We want these background samples to roughly match the regional preferences of the observations; that is we want to avoid having observations that are mostly over Georges Bank while our background samples are primarily around the Bay of Fundy. We want there to be some reasonable proximity between occupied and unoccupied environments.</p>
 <p>Here we want to satisfy a couple of basic requirements…</p>
 <ul>
-<li><p>balance the number of observations and background points,</p></li>
+<li><p>balance the number of observations and background points (whatever balance means),</p></li>
 <li><p>avoid selecting background points that coincide with observations,</p></li>
-<li><p>choose background points where we can measure the same enviromental characteristics that measure for observations.</p></li>
+<li><p>choose background points where we can measure the same environmental characteristics that we can measure for observations.</p></li>
 </ul>
-<p>Keep in mind we will be glossing over important details; there is much more to investigate here, but <em>tempus fugit</em> and our course of study is brief. At the end we want to have in hand a set of locations that can be a companion for the obseravtions.</p>
+<p>Keep in mind we will be glossing over important details; there is much more to investigate here, but <em>tempus fugit</em> and our course of study is brief. At the end we want to have in hand a set of locations that can be a companion for the observations.</p>
 <section id="setup" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Setup</h1>
 <p>As always, we start by running our setup function. Start RStudio/R, and relaod your project with the menu <code>File &gt; Recent Projects</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"setup.R"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>We also will need the Brickman mask and the observation data. Note that we are making a model for each month, so we shall select background points by month. Given what we have learned about the distribution of observations over the months of year this may be surprising; some months have many more observations than other months. <em>So, if we chose to balance the number of observation and background points and the number of observations vary, won’t some models be better informed with more data?</em> The answer is <strong>yes</strong>. <em>Does it matter?</em> <strong>Good question!</strong></p>
+<p>We also will need the Brickman mask and the observation data. Note that we are making a model that works for every month, so we shall select background points by month. Given what we have learned about the distribution of observations over the months of year this may be surprising; some months have many more observations than other months. Won’t months with more data be “better informed” than months with fewer data? That is possible, but we have to start somewhere so we’ll be choosing a set number of background points for each month that balances the observations and background throughout the year rather than per month.</p>
 <p>OK - load the data we need.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>coast <span class="ot">=</span> <span class="fu">read_coastline</span>()</span>
@@ -291,30 +283,78 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(scenario <span class="sc">==</span> <span class="st">"STATIC"</span>, var <span class="sc">==</span> <span class="st">"mask"</span>)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>mask <span class="ot">=</span> <span class="fu">read_brickman</span>(db, <span class="at">add_depth =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Let’s start with one month as an example. Later we’ll loop through the remaining months to collect all of the background points. <em>Mola mola</em> observations are concentrated between April and November so let’s pick August. We filter out those observations, and then plot the mask with the points drizzled on top.</p>
+<p>Let’s start with a simple plot of the observations per month. We’ll make an array of maps with one constructed per month. We’ll use the <a href="https://ggplot2.tidyverse.org/">ggplot2 plotting system</a> which is a powerful system for layering components of a plot.</p>
+<p>We will want to add a notation to each plot showing the number of points that month. To make that table we use the <code>count()</code> function from the <a href="https://dplyr.tidyverse.org/">dplyr R package</a>. We also found the best location to print the count (through trial and error) so we define that, too.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>aug_obs <span class="ot">=</span> obs <span class="sc">|&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(month <span class="sc">==</span> <span class="st">"Aug"</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mask, <span class="at">reset =</span> <span class="cn">FALSE</span>, <span class="at">key.pos =</span> <span class="cn">NA</span>, <span class="at">breaks =</span> <span class="st">"equal"</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(coast, <span class="at">col =</span> <span class="st">"orange"</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(aug_obs), <span class="at">col =</span> <span class="st">"yellow"</span>, <span class="at">cex =</span> <span class="fl">0.1</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>LON0 <span class="ot">=</span> <span class="sc">-</span><span class="dv">67</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>LAT0 <span class="ot">=</span> <span class="dv">46</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>all_counts <span class="ot">=</span> <span class="fu">count</span>(<span class="fu">st_drop_geometry</span>(obs), month) <span class="co"># counting is faster without spatial baggage</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>all_counts</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 12 × 2
+   month     n
+   &lt;fct&gt; &lt;int&gt;
+ 1 Jan       5
+ 2 Feb      17
+ 3 Mar      14
+ 4 Apr     247
+ 5 May     670
+ 6 Jun    2347
+ 7 Jul    2086
+ 8 Aug    2520
+ 9 Sep     929
+10 Oct     426
+11 Nov     338
+12 Dec      56</code></pre>
+</div>
+</div>
+<p>Now we can construct the plot. Note that layering of data, then the coast then the extra text. Also, we use alpha (aka transparency or opacity) blending to make the plotting symbols slightly transparent which reveals overlapping points nicely.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> obs, <span class="at">alpha =</span> <span class="fl">0.2</span>, <span class="at">shape =</span> <span class="st">"circle small"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> coast, <span class="at">col =</span> <span class="st">"orange"</span>) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> all_counts,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> LON0, </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">y =</span> LAT0, </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"n: %i"</span>, .data<span class="sc">$</span>n)),</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                          <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Longitude"</span>, <span class="at">y =</span> <span class="st">"Latitude"</span>, <span class="at">title =</span> <span class="st">"All observations"</span>) <span class="sc">+</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>month)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="C02_background_files/figure-html/august_background-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C02_background_files/figure-html/all_observations-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>So the are 2520 August observations, but some of those points are densely distributed. In fact, it may be that we have multiple points in each raster cell. We have a function to help use reduce “thin” the observations so that we have just one observation per cell.</p>
+<p>Some of those points are densely distributed depending upon the month. In fact, it may be that we have multiple points in each raster cell in our Brickman data. We have a function to help use reduce “thin” the observations so that we have just one observation per cell.</p>
 <section id="thinning-observations" class="level2" data-number="1.1">
 <h2 data-number="1.1" class="anchored" data-anchor-id="thinning-observations"><span class="header-section-number">1.1</span> Thinning observations</h2>
-<p>Thinning is the process we use to sub-sample observations so that they are more evenly sampled across the spatial domain. We do this to discourage accidental sampling bias.</p>
+<p>Thinning is the process we use to sub-sample observations so that they are more evenly sampled across the spatial domain. We do this to discourage accidental sampling bias. The <a href="">tidysdm package</a> provides a nice function, <code>thin_by_cell()</code>, that “thins” by allowing only one observation per cell in the Brickman data. We’ll iterate through each month</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>thinned_aug_obs <span class="ot">=</span> <span class="fu">thin_by_cell</span>(aug_obs, mask)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mask, <span class="at">reset =</span> <span class="cn">FALSE</span>, <span class="at">key.pos =</span> <span class="cn">NA</span>, <span class="at">breaks =</span> <span class="st">"equal"</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(coast, <span class="at">col =</span> <span class="st">"orange"</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(thinned_aug_obs), <span class="at">col =</span> <span class="st">"yellow"</span>, <span class="at">cex =</span> <span class="fl">0.1</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>thinned_obs <span class="ot">=</span> <span class="fu">sapply</span>(month.abb,</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>               <span class="cf">function</span>(mon){ </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                 <span class="fu">thin_by_cell</span>(obs <span class="sc">|&gt;</span> <span class="fu">filter</span>(month <span class="sc">==</span> mon), mask)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>               }, <span class="at">simplify =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">bind_rows</span>() </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># another count</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>thinned_counts <span class="ot">=</span> <span class="fu">count</span>(<span class="fu">st_drop_geometry</span>(thinned_obs), month)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> thinned_obs, </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">alpha =</span> <span class="fl">0.2</span>, </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">shape =</span> <span class="st">"circle small"</span>, </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> coast, <span class="at">col =</span> <span class="st">"orange"</span>) <span class="sc">+</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> thinned_counts,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> LON0, </span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>                          <span class="at">y =</span> LAT0, </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                          <span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"n: %i"</span>, .data<span class="sc">$</span>n)),</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>                          <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Longitude"</span>, <span class="at">y =</span> <span class="st">"Latitude"</span>, <span class="at">title =</span> <span class="st">"Thinned observations"</span>) <span class="sc">+</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>month)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -323,256 +363,144 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>We now have thinned the observations to just 1231 records. That has certainly made a difference - no more dense lines of observations even though we can discern the survey track lines.</p>
 </section>
-<section id="thinning-while-aggregating-array-cells" class="level2" data-number="1.2">
-<h2 data-number="1.2" class="anchored" data-anchor-id="thinning-while-aggregating-array-cells"><span class="header-section-number">1.2</span> Thinning while aggregating array cells</h2>
-<p>But we could pull another tool out of the bag of tricks - we could interpolate the underlying mask array cells so that it has larger cells. We do this by merging (aggregating) neighboring cells first, then thinning the observations. We’ll try aggregating by a factor of 2 - which means that two neighboring cells (in horizontal and in vertical) are merged. That is a 2x2 block of smaller cells becomes one bigger cell. An aggregating factor 3 means three cells in each direction are merged (a 3x3 block becomes 1 cell), and so on.</p>
+<section id="weighted-sampling" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="weighted-sampling"><span class="header-section-number">1.2</span> Weighted sampling</h2>
+<p>We now have thinned the observations to just 4861 records compared to the original 9655 observations. So that get us to no more than 1 observation to cell. But do we loose the importance of clustered observations? Isn’t meaningful ecologically that the species is found in clusters? The answers to those are <strong>yes</strong> and <strong>yes</strong>.</p>
+<p>Uh oh, so how do we retain that clustering importance? The answer is to build a sampling bias map using the original observations that influences where we sample. Let’s build a bias map by counting the number of observations in each cell - we’ll use the original observations for the entire year (regardless of month.)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>wicked_thinned_aug_obs <span class="ot">=</span> <span class="fu">thin_by_cell</span>(aug_obs, mask, <span class="at">agg_fact =</span> <span class="dv">2</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mask, <span class="at">reset =</span> <span class="cn">FALSE</span>, <span class="at">key.pos =</span> <span class="cn">NA</span>, <span class="at">breaks =</span> <span class="st">"equal"</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(coast, <span class="at">col =</span> <span class="st">"orange"</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(wicked_thinned_aug_obs), <span class="at">col =</span> <span class="st">"yellow"</span>, <span class="at">cex =</span> <span class="fl">0.1</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bias_map <span class="ot">=</span> <span class="fu">rasterize_point_density</span>(obs, mask) <span class="co"># &lt;-- note the original observations</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_stars</span>(<span class="at">data =</span> bias_map, <span class="fu">aes</span>(<span class="at">fill =</span> count)) <span class="sc">+</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_b</span>(<span class="at">na.value =</span> <span class="st">"transparent"</span>) <span class="sc">+</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> coast, <span class="at">col =</span> <span class="st">"orange"</span>) <span class="sc">+</span> </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Longitude"</span>, <span class="at">y =</span> <span class="st">"Latitude"</span>, <span class="at">title =</span> <span class="st">"Bias map using all observations"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="C02_background_files/figure-html/really_thin-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C02_background_files/figure-html/bias_map-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>Whoa, we now have thinned the observations to just 682 records. If you didn’t know that many of the observations came from straight-line surveys then you might not notice the faint structure of the distribution. Alas, you do have the knowledge so you probably can pick out the lines, but all in all this is a pretty good representation.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Heads up! Some species might not need to thin the observations so aggressively. Some might not need us to aggregate the cells. <em>Mola mola</em> is a highly observed species during certain times of the year, so it merits aggressive thinning. Keep in mind you may need to treat your species observations differently - keep your options open!</p>
-</div>
-</div>
+<p>Depending upon your distribution, the clustering may be more or less apparent. For <em>Mola mola</em> it’s dominated by a wide even spread with a few “peak” spots.</p>
 </section>
 <section id="randomly-sample-background-points" class="level2" data-number="1.3">
 <h2 data-number="1.3" class="anchored" data-anchor-id="randomly-sample-background-points"><span class="header-section-number">1.3</span> Randomly sample background points</h2>
-<p>Now that we have a reasonable set of observation, we now need to choose points around those to represent the background. The <code>sample_background()</code> function requires three input arguments: the set of observations, the raster array and the number of points desired. We can also ask for the original presence observations to be returned. We’ll modify the output by adding a column identifying the month.</p>
+<p>Now that we have a reasonable set of observation and a sampling bias map, we now need to choose points using those to represent the background. The <code>sample_background()</code> function requires three input arguments: the set of observations, the raster array and the number of points desired. We can also ask for the presence observations to be returned along with the background points to keep things tidy. Since we are doing this by month, we’ll modify the output by adding a column identifying the month.</p>
+<section id="but-just-how-many-background-points" class="level4" data-number="1.3.0.1">
+<h4 data-number="1.3.0.1" class="anchored" data-anchor-id="but-just-how-many-background-points"><span class="header-section-number">1.3.0.1</span> But just how many background points?</h4>
+<p>But how many background points should we get for each month? Should be try balance by month? Or balance by taking the average for all months. Let’s do the latter, but it might be worth exploring that further.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>obsbkg <span class="ot">=</span> <span class="fu">sample_background</span>(aug_obs, mask, <span class="dv">2</span><span class="sc">*</span><span class="fu">nrow</span>(wicked_thinned_aug_obs),</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                           <span class="at">return_pres =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">month =</span> <span class="st">"Aug"</span>, <span class="at">.before =</span> <span class="dv">1</span>)    <span class="co"># .before tells R where to put this new column</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>obsbkg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>nback_avg <span class="ot">=</span> <span class="fu">mean</span>(all_counts<span class="sc">$</span>n)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>So, here we go. We shall use the <a href="https://bigelowlab.github.io/handytandy/iterations.html"><code>sapply</code> iterator</a> to step through each month. For each month we’ll use the thinned observations and the annual bias map to sample for background. At the end we’ll have a list of monthly tables which we’ll bind into one giant table, and we’ll refresh the month column to be a factor (of monthly groupings of course!)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>obsbkg <span class="ot">=</span> <span class="fu">sapply</span>(month.abb,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">function</span>(mon){ </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sample_background</span>(thinned_obs <span class="sc">|&gt;</span> <span class="fu">filter</span>(month <span class="sc">==</span> mon), <span class="co"># &lt;- just this month</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                       bias_map,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">method =</span> <span class="st">"bias"</span>,  <span class="co"># &lt;-- it needs to know it's a bias map</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">return_pres =</span> <span class="cn">TRUE</span>, <span class="co"># &lt;-- give me the obs back, too</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                       <span class="at">n =</span> nback_avg) <span class="sc">|&gt;</span>   <span class="co"># &lt;-- how many points</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">month =</span> mon, <span class="at">.before =</span> <span class="dv">1</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    }, <span class="at">simplify =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">month =</span> <span class="fu">factor</span>(month, <span class="at">levels =</span> month.abb))</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>obsbkg </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Simple feature collection with 3884 features and 2 fields
+<pre><code>Simple feature collection with 14509 features and 2 fields
 Geometry type: POINT
 Dimension:     XY
-Bounding box:  xmin: -74.89169 ymin: 38.805 xmax: -65.02004 ymax: 45.29627
+Bounding box:  xmin: -74.70772 ymin: 38.84118 xmax: -65.00391 ymax: 45.1333
 Geodetic CRS:  WGS 84
-# A tibble: 3,884 × 3
-   month class                geometry
- * &lt;chr&gt; &lt;fct&gt;             &lt;POINT [°]&gt;
- 1 Aug   presence   (-72.1214 39.8514)
- 2 Aug   presence       (-67.46 43.53)
- 3 Aug   presence (-72.35158 38.98323)
- 4 Aug   presence (-67.62971 43.99298)
- 5 Aug   presence   (-68.28717 41.857)
- 6 Aug   presence (-69.02174 40.98727)
- 7 Aug   presence   (-72.3179 40.5558)
- 8 Aug   presence (-67.80601 43.05127)
- 9 Aug   presence       (-68.23 42.74)
-10 Aug   presence (-68.19587 43.84306)
-# ℹ 3,874 more rows</code></pre>
+# A tibble: 14,509 × 3
+   month class                  geometry
+ * &lt;fct&gt; &lt;fct&gt;               &lt;POINT [°]&gt;
+ 1 Jan   presence   (-72.05151 39.07928)
+ 2 Jan   presence         (-71.31 41.49)
+ 3 Jan   presence       (-71.989 39.668)
+ 4 Jan   presence   (-69.62994 43.65584)
+ 5 Jan   presence   (-67.79617 42.75941)
+ 6 Jan   background (-66.82984 42.33478)
+ 7 Jan   background (-68.63964 40.03139)
+ 8 Jan   background (-66.08947 42.82836)
+ 9 Jan   background (-68.39285 42.82836)
+10 Jan   background  (-71.6834 39.86686)
+# ℹ 14,499 more rows</code></pre>
 </div>
 </div>
-<p>Let’s see where these fall relative to each other.</p>
+<p>Let’s see where these presence/background points fall relative to each other.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mask, <span class="at">reset =</span> <span class="cn">FALSE</span>, <span class="at">key.pos =</span> <span class="cn">NA</span>, <span class="at">breaks =</span> <span class="st">"equal"</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(coast, <span class="at">col =</span> <span class="st">"orange"</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(obsbkg <span class="sc">|&gt;</span> <span class="fu">filter</span>(class <span class="sc">==</span> <span class="st">"presence"</span>) <span class="sc">|&gt;</span> <span class="fu">st_geometry</span>(), </span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"yellow"</span>, <span class="at">cex =</span> <span class="fl">0.1</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(obsbkg <span class="sc">|&gt;</span> <span class="fu">filter</span>(class <span class="sc">==</span> <span class="st">"background"</span>) <span class="sc">|&gt;</span> <span class="fu">st_geometry</span>(), </span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"blue"</span>, <span class="at">cex =</span> <span class="fl">0.2</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> obsbkg, </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">col =</span> class),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">alpha =</span>  <span class="fl">0.2</span>, <span class="at">shape =</span> <span class="st">"circle small"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> coast, <span class="at">col =</span> <span class="st">"orange"</span>)  <span class="sc">+</span> </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Longitude"</span>, <span class="at">y =</span> <span class="st">"Latitude"</span>, <span class="at">title =</span> <span class="st">"All"</span>) <span class="sc">+</span>   </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span>  <span class="co"># &lt;- make a simple white background</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_okabe_ito</span>() <span class="sc">+</span>  <span class="co"># &lt;-- colorblind friendly for N Record</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>month)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="C02_background_files/figure-html/plot_background-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="C02_background_files/figure-html/plot_presence_background-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>These would be the data locations we feed into the model. So is that reasonable solution? At first glance it seems to be, so we’ll choose this background sampling approach; aggressive thinning followed by random sampling while avoiding observations. We can’t know if another approach might be better until we actually start modeling.</p>
+<p>These would be the data locations we feed into the model. So is that reasonable solution? At first glance it seems to be, so we’ll choose this background sampling approach; thinning with biased sampling. We can’t know if another approach might be better until we actually start modeling.</p>
+<p>Let’s save this.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_model_input</span>(obsbkg, <span class="at">scientificname =</span> <span class="st">"Mola mola"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Note that there is a function for reading model input files, too.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">read_model_input</span>(<span class="at">scientificname =</span> <span class="st">"Mola mola"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 </section>
-<section id="model-input-per-month" class="level1" data-number="2">
-<h1 data-number="2"><span class="header-section-number">2</span> Model input per month</h1>
-<p>So, how do we go about producing a model input data set for each month? For that we need to <strong>iterate</strong>; if iteration is new to you please be sure to check out our <a href="https://bigelowlab.github.io/handytandy/iterations.html">iteration tutorial</a>. We are going to make a small function that handles creating the combined observation/background dataset for each month. We’ll use a <em>for-loop</em> to iterate over the months of the year: Jan, Feb, …, Nov, Dec.&nbsp;</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
+</section>
+<section id="recap" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Recap</h1>
+<p>We have prepared what we call “model inputs”, in particular for <em>Mola mola</em>, by thinning observations and selecting background points. There are lots of other approaches to creating the model input, but for the sake of learning we’ll stick with this approach. We developed a function that will produce our model inputs for a given month, and saved them to disk.</p>
+</section>
+<section id="coding-assignment-c02" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Coding Assignment C02</h1>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Heads up! Your assignment will be to use this function in an <code>lapply()</code> function that will iterate over the months for you in lieu of a <em>for-loop</em>. More on that later…</p>
-</div>
-</div>
-<section id="a-function-we-can-reuse" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="a-function-we-can-reuse"><span class="header-section-number">2.1</span> A function we can reuse</h2>
-<p>Here we make a function that needs at least three arguments: the complete set of observations, the mask used for thinning (possibly agressively) and sampling, as well as the month to filter the observations. The pseudo-code might look like this…</p>
-<pre><code>for a given month
-  filter the obs for that month
-  thin the obs (possibly agressively)
-  sample the background
-  return the combined thined observations/random background</code></pre>
-<p>Phew! That’s a lot of steps. To manually run those steps 12 times would be tedious, so we roll that into a function that we can reuse 12 times instead.</p>
-<p>This function will have a name, <code>make_model_input_by_month</code>. It’s a long name, but it makes it obvious what it does. First we start with the documentation.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Builds a model input data set for a given month</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#' </span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param mon str, the month abbreviation for the month of interest ("Jan" by default)</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param obs table, the complete observation data set</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param raster stars, the object that defines the sampling space, usually a mask</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param species str, the name of the species prepended to the name of the output files.</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#'   (By default "Mola mola" which gets converted to "Mola_mola")</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param path the output data path to store this data (be default "model_input")</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param agg_fact num, aggregation factor for aggressive thinning.  By default is 1 which means no aggregation.  For very dense observations, try a value of 2 to thin more aggressively.</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param obs_to_bkg num, the ratio of observations to background</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param min_obs num, this sets a threshold below which we wont try to make a model. (Default is 10)</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return a named two element list of greedy and conservative model inputs - they are tables</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>make_model_input_by_month  <span class="ot">=</span> <span class="cf">function</span>(<span class="at">mon =</span> <span class="st">"Jan"</span>,</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">obs =</span> <span class="fu">read_observations</span>(<span class="st">"Mola mola"</span>),</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">raster =</span> <span class="cn">NULL</span>,</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">obs_to_bkg =</span> <span class="dv">2</span>, </span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">species =</span> <span class="st">"Mola mola"</span>,</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">path =</span> <span class="fu">data_path</span>(<span class="st">"model_input"</span>),</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">agg_fact =</span> <span class="dv">1</span>, </span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">min_obs =</span> <span class="dv">10</span>){</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the user *must* provide a raster</span></span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(raster)) <span class="fu">stop</span>(<span class="st">"please provide a raster"</span>)</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># filter the obs</span></span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  obs <span class="ot">=</span> obs <span class="sc">|&gt;</span></span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(month <span class="sc">==</span> mon[<span class="dv">1</span>])</span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check that we have at least some records, if not enough then alert the user</span></span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>  <span class="co"># and return NULL</span></span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nrow</span>(obs) <span class="sc">&lt;</span> min_obs){</span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">warning</span>(<span class="st">"sorry, this month has too few observations: "</span>, mon)</span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>  <span class="co"># make sure the output path exists, if not, make it</span></span>
-<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>  path <span class="ot">=</span> <span class="fu">make_path</span>(path)</span>
-<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>  thinned <span class="ot">=</span> <span class="fu">thin_by_cell</span>(obs, raster, <span class="at">agg_fact =</span> agg_fact)</span>
-<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>  <span class="co"># make the greedy model input by sampling the background</span></span>
-<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>  model_input <span class="ot">=</span> <span class="fu">sample_background</span>(thinned, raster, <span class="fu">nrow</span>(thinned) <span class="sc">*</span> obs_to_bkg,</span>
-<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">return_pres =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">month =</span> mon, <span class="at">.before =</span> <span class="dv">1</span>)</span>
-<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>  <span class="co"># save the data</span></span>
-<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>  filename <span class="ot">=</span> <span class="fu">sprintf</span>(<span class="st">"%s-%s-model_input.gpkg"</span>, </span>
-<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">gsub</span>(<span class="st">" "</span>, <span class="st">"_"</span>, species),</span>
-<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>                     mon)</span>
-<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_sf</span>(model_input, <span class="fu">file.path</span>(path, filename))</span>
-<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>  <span class="co"># return, but disable automatic printing</span></span>
-<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">invisible</span>(model_input)</span>
-<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-</section>
-<section id="reusing-the-function-in-a-loop" class="level1" data-number="3">
-<h1 data-number="3"><span class="header-section-number">3</span> Reusing the function in a loop</h1>
-<p>The above may seem like a lot, but it really simply reproduces we took earlier with a few safety checks. Now we use a for loop to run through the months, calling our function each time. Happily, the built-in variable <code>month.abb</code> has all of the month names in order.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (this_month <span class="cf">in</span> month.abb){</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">=</span> <span class="fu">make_model_input_by_month</span>(this_month,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">obs =</span> <span class="fu">read_observations</span>(<span class="at">scientificname =</span> <span class="st">"Mola mola"</span>),</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">raster =</span> mask,</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">species =</span> <span class="st">"Mola mola"</span>,</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">path =</span> <span class="fu">data_path</span>(<span class="st">"model_input"</span>),</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">agg_fact =</span> <span class="dv">2</span>, </span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">min_obs =</span> <span class="dv">3</span>)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="listing-the-output-files" class="level1" data-number="4">
-<h1 data-number="4"><span class="header-section-number">4</span> Listing the output files</h1>
-<p>You can always look into you output directory to see if the files we made, but even better might be to use the computer to list them for you. If your species is found in sufficient numbers year round you’ll have 12 files. However, any month that has fewer than the minimum number of observations will not have an output file.</p>
-<p>Here we have the computer generate the list of files that were written.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>path <span class="ot">=</span> <span class="fu">data_path</span>(<span class="st">"model_input"</span>)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>files <span class="ot">=</span> <span class="fu">list.files</span>(path, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>files</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Apr-model_input.gpkg"
- [2] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Aug-model_input.gpkg"
- [3] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Dec-model_input.gpkg"
- [4] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Feb-model_input.gpkg"
- [5] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Jan-model_input.gpkg"
- [6] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Jul-model_input.gpkg"
- [7] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Jun-model_input.gpkg"
- [8] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Mar-model_input.gpkg"
- [9] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-May-model_input.gpkg"
-[10] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Nov-model_input.gpkg"
-[11] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Oct-model_input.gpkg"
-[12] "/home/btupper/ColbyForecasting_data/model_input/Mola_mola-Sep-model_input.gpkg"</code></pre>
-</div>
-</div>
-</section>
-<section id="reading-the-files" class="level1" data-number="5">
-<h1 data-number="5"><span class="header-section-number">5</span> Reading the files</h1>
-<p>We know that each file should have a table with spatial information included. Let’s read one back and plot it.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">read_sf</span>(files[<span class="dv">1</span>])</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>filename <span class="ot">=</span> <span class="fu">basename</span>(files[<span class="dv">1</span>])</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[<span class="st">'class'</span>], </span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>,  </span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch =</span> <span class="st">"+"</span>, </span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">extent =</span> mask, </span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> filename,</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">reset =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(coast, <span class="at">col =</span> <span class="st">"orange"</span>, <span class="at">add =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="C02_background_files/figure-html/read_file-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
+<div class="callout-body-container">
+<p>Use the menu option File &gt; New File &gt; R Script to create a blank file. Save the file (even though it is empty) in the “assignment” directory as “assignment_script_2.R”. Use this file to build a script that meets the following challenge. Note that the existing file, “assignment_script_0.R” is already there as an example.</p>
+<p>For each month select at random one presence and one background point (so, that will be 2 x 12 = 24 points!) from your model input data. Then select three (3) variables in the Brickman present monthly data set, and build a single table that has the three variables for the 24 points. This is <strong>very similar</strong> to the <a href="https://bigelowlab.github.io/ColbyForecasting/C00_coding.html#coding-assignment">C00 coding chapter homework</a>.</p>
+<p>Hint! Check out <a href="https://bigelowlab.github.io/handytandy/iterations.html#groups-in-a-table">iterating over grouped tables</a> and the <a href="https://dplyr.tidyverse.org/reference/slice.html"><code>slice_sample</code> function</a>.</p>
+<p>Here’s what our table looks like for the <em>Mola mola</em> species.</p>
+<pre><code>Simple feature collection with 24 features and 7 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: -72.99962 ymin: 39.07928 xmax: -65.51362 ymax: 43.89779
+Geodetic CRS:  WGS 84
+# A tibble: 24 × 8
+   month class                      geom point  depth   SSS   SST  Tbtm
+ * &lt;fct&gt; &lt;fct&gt;               &lt;POINT [°]&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1 Jan   presence   (-72.05151 39.07928) p1    2116.   33.3 10.9   3.72
+ 2 Jan   background (-67.48795 40.36045) p2     789.   31.7  6.65  4.67
+ 3 Feb   presence   (-72.00363 39.67702) p1     231.   31.9  5.73  8.64
+ 4 Feb   background (-69.79134 40.60724) p2      60.4  31.2  3.58  3.89
+ 5 Mar   presence       (-72.056 39.205) p1    1362.   32.4  6.98  4.13
+ 6 Mar   background (-67.73474 42.66383) p2     194.   30.9  1.88  7.58
+ 7 Apr   presence      (-72.263 39.4379) p1     386.   31.7  7.08  6.44
+ 8 Apr   background  (-72.8351 39.20875) p2     102.   31.5  6.74 10.3 
+ 9 May   presence          (-66.3 41.25) p1     281.   31.2  8.03  7.12
+10 May   background (-71.43661 39.62007) p2    1867.   31.9 11.4   3.78
+# ℹ 14 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
 </div>
 </div>
 </div>
-</section>
-<section id="recap" class="level1" data-number="6">
-<h1 data-number="6"><span class="header-section-number">6</span> Recap</h1>
-<p>We have prepared what we call “model inputs”, in particular for <em>Mola mola</em>, by selecting background points. There are lots of other approaches, too, but for the sake of learning stick with this approach. We developed a function that will produce our model inputs for a given month, and saved them to disk. Then we read at least one back and showed that we can restore these from disk.</p>
-</section>
-<section id="coding-assignment-c02" class="level1" data-number="7">
-<h1 data-number="7"><span class="header-section-number">7</span> Coding Assignment C02</h1>
-<p>Create a function to read the correct model input when given the species, month and path.</p>
-<p>Use the menu option <code>File &gt; New File &gt; R Script</code> to create a blank file. Save the file (even though it is empty) in the “functions” directory as “my_model_input.R”. Use this file to build a function (or set of functions) that uses this set of arguments. Below is a template to help you get started. Copy the code below to your “my_model_input.R” and then edit it.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Reads a model input file given species, month, approach and path</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co">#' </span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param scientificname chr, the species name</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param mon chr month abbreviation</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param path chr the path to the data directory</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>read_model_input <span class="ot">=</span> <span class="cf">function</span>(<span class="at">scientificname =</span> <span class="st">"Mola mola"</span>,</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">mon =</span> <span class="st">"Jan"</span>,</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">path =</span> <span class="fu">data_path</span>(<span class="st">"model_input"</span>)){</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># your part goes in here</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="challenge-c02" class="level1" data-number="8">
-<h1 data-number="8"><span class="header-section-number">8</span> Challenge C02</h1>
-<p>And here we add one challenge…</p>
-<p>Create a function that accepts a species name and path and returns all of the model inputs for all available months. Hint: try using R’s <a href="https://bigelowlab.github.io/handytandy/iterations.html#iteration-with-lapply-and-sapply">built in iterator <code>lapply()</code></a> and the bind_rows() function. The output should be a single spatial data table with columns <code>month</code>, <code>class</code> and <code>geometry</code>.</p>
 
 
 </section>

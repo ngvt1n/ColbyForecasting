@@ -9,20 +9,19 @@ Traditional ecological surveys are systematic, for a given species survey data s
 
 When we model species distributions we are trying to define the environments where we should expect to find a species as well as the environments we would not expect to find a species. With OBIS data we have in hand the locations of observations, and we can extract the environmental data at those locations.  To characterize the unoccupied environments we are going to have to sample what is called "background" (aka "background points" and "pseudo-absences".)
 
-We assume that we want the number of background points to be roughoy balanced with the number of observations. What balance means is open to interpretation, but if we have 100 observations then we woud like to have 50 to 200 background points in order to be balanced.
-
+We assume that we want the number of background points to be roughoy balanced with the number of observations. What balance means is open to interpretation, but if we have 100 observations then we would like to have 50 to 200 background points in order to be balanced.  One can spend a lot of time of time finding the most appropriate balance.
 
 We want these background samples to roughly match the regional preferences of the observations; that is we want to avoid having observations that are mostly over Georges Bank while our background samples are primarily around the Bay of Fundy. We want there to be some reasonable proximity between occupied and unoccupied environments. 
 
 Here we want to satisfy a couple of basic requirements...
 
-+ balance the number of observations and background points,
++ balance the number of observations and background points (whatever balance means),
 
 + avoid selecting background points that coincide with observations,
 
-+ choose background points where we can measure the same enviromental characteristics that measure for observations.
++ choose background points where we can measure the same environmental characteristics that we can measure for observations.
 
-Keep in mind we will be glossing over important details; there is much more to investigate here, but *tempus fugit* and our course of study is brief.  At the end we want to have in hand a set of locations that can be a companion for the obseravtions.
+Keep in mind we will be glossing over important details; there is much more to investigate here, but *tempus fugit* and our course of study is brief.  At the end we want to have in hand a set of locations that can be a companion for the observations.
 
 # Setup
 
@@ -32,8 +31,7 @@ As always, we start by running our setup function. Start RStudio/R, and relaod y
 source("setup.R")
 ```
 
-We also will need the Brickman mask and the observation data. Note that we are making a model for each month, so we shall select background points by month. Given what we have learned about the distribution of observations over the months of year this may be surprising; some months have many more observations than other months.  *So, if we chose to balance the number of observation and background points and the number of observations vary, won't some models be better informed with more data?*  The answer is **yes**. *Does it matter?*  **Good question!**
-
+We also will need the Brickman mask and the observation data. Note that we are making a model that works for every month, so we shall select background points by month. Given what we have learned about the distribution of observations over the months of year this may be surprising; some months have many more observations than other months. Won't months with more data be "better informed" than months with fewer data? That is possible, but we have to start somewhere so we'll be choosing a set number of background points for each month that balances the observations and background throughout the year rather than per month.
 
 OK - load the data we need.
 
@@ -45,224 +43,178 @@ db = brickman_database() |>
 mask = read_brickman(db, add_depth = FALSE)
 ```
 
-Let's start with one month as an example.  Later we'll loop through the remaining months to collect all of the background points. *Mola mola* observations are concentrated between April and November so let's pick August.  We filter out those observations, and then plot the mask with the points drizzled on top.  
+Let's start with a simple plot of the observations per month. We'll make an array of maps with one constructed per month.  We'll use the [ggplot2 plotting system](https://ggplot2.tidyverse.org/) which is a powerful system for layering components of a plot.
 
-```{r august_background}
-aug_obs = obs |>
-  filter(month == "Aug")
-plot(mask, reset = FALSE, key.pos = NA, breaks = "equal")
-plot(coast, col = "orange", add = TRUE)
-plot(st_geometry(aug_obs), col = "yellow", cex = 0.1, add = TRUE)
+We will want to add a notation to each plot showing the number of points that month.  To make that table we use the `count()` function from the [dplyr R package](https://dplyr.tidyverse.org/). We also found the best location to print the count (through trial and error) so we define that, too.
+
+```{r all_observations_count}
+LON0 = -67
+LAT0 = 46
+all_counts = count(st_drop_geometry(obs), month) # counting is faster without spatial baggage
+all_counts
 ```
 
-So the are `r nrow(aug_obs)` August observations, but some of those points are densely distributed.  In fact, it may be that we have multiple points in each raster cell. We have a function to help use reduce "thin" the observations so that we have just one observation per cell.
+Now we can construct the plot.  Note that layering of data, then the coast then the extra text.  Also, we use alpha (aka transparency or opacity) blending to make the plotting symbols slightly transparent which reveals overlapping points nicely.  
+
+```{r all_observations}
+ggplot() +
+  geom_sf(data = obs, alpha = 0.2, shape = "circle small", size = 1) +
+  geom_sf(data = coast, col = "orange") +
+  geom_text(data = all_counts,
+            mapping = aes(x = LON0, 
+                          y = LAT0, 
+                          label = sprintf("n: %i", .data$n)),
+                          size = 3) + 
+  labs(x = "Longitude", y = "Latitude", title = "All observations") +
+  facet_wrap(~month)
+```
+
+Some of those points are densely distributed depending upon the month.  In fact, it may be that we have multiple points in each raster cell in our Brickman data.  We have a function to help use reduce "thin" the observations so that we have just one observation per cell.
 
 ## Thinning observations
 
-Thinning is the process we use to sub-sample observations so that they are more evenly sampled across the spatial domain.  We do this to discourage accidental sampling bias. 
+Thinning is the process we use to sub-sample observations so that they are more evenly sampled across the spatial domain. We do this to discourage accidental sampling bias. The [tidysdm package]() provides a nice function, `thin_by_cell()`, that "thins" by allowing only one observation per cell in the Brickman data.  We'll iterate through each month
 
 ```{r thin_observations}
-thinned_aug_obs = thin_by_cell(aug_obs, mask)
-plot(mask, reset = FALSE, key.pos = NA, breaks = "equal")
-plot(coast, col = "orange", add = TRUE)
-plot(st_geometry(thinned_aug_obs), col = "yellow", cex = 0.1, add = TRUE)
+thinned_obs = sapply(month.abb,
+               function(mon){ 
+                 thin_by_cell(obs |> filter(month == mon), mask)
+               }, simplify = FALSE) |>
+  dplyr::bind_rows() 
+
+# another count
+thinned_counts = count(st_drop_geometry(thinned_obs), month)
+
+ggplot() +
+  geom_sf(data = thinned_obs, 
+          alpha = 0.2, 
+          shape = "circle small", 
+          size = 1) +
+  geom_sf(data = coast, col = "orange") +
+  geom_text(data = thinned_counts,
+            mapping = aes(x = LON0, 
+                          y = LAT0, 
+                          label = sprintf("n: %i", .data$n)),
+                          size = 3) + 
+  labs(x = "Longitude", y = "Latitude", title = "Thinned observations") +
+  facet_wrap(~month)
 ```
 
-We now have thinned the observations to just `r nrow(thinned_aug_obs)` records. That has certainly made a difference - no more dense lines of observations even though we can discern the survey track lines.  
+## Weighted sampling
 
-## Thinning while aggregating array cells
+We now have thinned the observations to just `r nrow(thinned_obs)` records compared to the original `r nrow(obs)` observations. So that get us to no more than 1 observation to cell.  But do we loose the importance of clustered observations?  Isn't meaningful ecologically that the species is found in clusters?  The answers to those are **yes** and **yes**.
 
-But we could pull another tool out of the bag of tricks - we could interpolate the underlying mask array cells so that it has larger cells. We do this by merging (aggregating) neighboring cells first, then thinning the observations.  We'll try aggregating by a factor of 2 - which means that two neighboring cells (in horizontal and in vertical) are merged. That is a 2x2 block of smaller cells becomes one bigger cell.  An aggregating factor 3 means three cells in each direction are merged (a 3x3 block becomes 1 cell), and so on.
+Uh oh, so how do we retain that clustering importance?  The answer is to build a sampling bias map using the original observations that influences where we sample.  Let's build a bias map by counting the number of observations in each cell - we'll use the original observations for the entire year (regardless of month.)
 
-```{r really_thin}
-wicked_thinned_aug_obs = thin_by_cell(aug_obs, mask, agg_fact = 2)
-plot(mask, reset = FALSE, key.pos = NA, breaks = "equal")
-plot(coast, col = "orange", add = TRUE)
-plot(st_geometry(wicked_thinned_aug_obs), col = "yellow", cex = 0.1, add = TRUE)
+```{r bias_map}
+bias_map = rasterize_point_density(obs, mask) # <-- note the original observations
+
+ggplot() +
+  geom_stars(data = bias_map, aes(fill = count)) +
+  scale_fill_viridis_b(na.value = "transparent") +
+  geom_sf(data = coast, col = "orange") + 
+  labs(x = "Longitude", y = "Latitude", title = "Bias map using all observations")
 ```
-
-Whoa, we now have thinned the observations to just `r nrow(wicked_thinned_aug_obs)` records. If you didn't know that many of the observations came from straight-line surveys then you might not notice the faint structure of the distribution. Alas, you do have the knowledge so you probably can pick out the lines, but all in all this is a pretty good representation.
-
-:::{.callout-note}
-Heads up!  Some species might not need to thin the observations so aggressively.  Some might not need us to aggregate the cells. *Mola mola* is a highly observed species during certain times of the year, so it merits aggressive thinning. Keep in mind you may need to treat your species observations differently - keep your options open!
-:::
+Depending upon your distribution, the clustering may be more or less apparent.  For *Mola mola* it's dominated by a wide even spread with a few "peak" spots.
 
 ## Randomly sample background points
 
-Now that we have a reasonable set of observation, we now need to choose points around those to represent the background.  The `sample_background()` function requires three input arguments: the set of observations, the raster array and the number of points desired.  We can also ask for the
-original presence observations to be returned.  We'll modify the output by adding a column identifying the month.
+Now that we have a reasonable set of observation and a sampling bias map, we now need to choose points using those to represent the background.  The `sample_background()` function requires three input arguments: the set of observations, the raster array and the number of points desired.  We can also ask for the presence observations to be returned along with the background points to keep things tidy.  Since we are doing this by month, we'll modify the output by adding a column identifying the month.
+
+#### But just how many background points?
+
+But how many background points should we get for each month? Should be try balance by month?  Or balance by taking the average for all months.  Let's do the latter, but it might be worth exploring that further.
+
+```{r n_background_per_month}
+nback_avg = mean(all_counts$n)
+```
+
+So, here we go.  We shall use the [`sapply` iterator](https://bigelowlab.github.io/handytandy/iterations.html) to step through each month. For each month we'll use the thinned observations and the annual bias map to sample for background. At the end we'll have a list of monthly tables which we'll bind into one giant table, and we'll refresh the month column to be a factor (of monthly groupings of course!)
 
 ```{r sample_background}
-obsbkg = sample_background(aug_obs, mask, 2*nrow(wicked_thinned_aug_obs),
-                           return_pres = TRUE) |>
-  mutate(month = "Aug", .before = 1)    # .before tells R where to put this new column
-obsbkg
+obsbkg = sapply(month.abb,
+    function(mon){ 
+      sample_background(thinned_obs |> filter(month == mon), # <- just this month
+                       bias_map,
+                       method = "bias",  # <-- it needs to know it's a bias map
+                       return_pres = TRUE, # <-- give me the obs back, too
+                       n = nback_avg) |>   # <-- how many points
+        mutate(month = mon, .before = 1)
+    }, simplify = FALSE) |>
+  bind_rows() |>
+  mutate(month = factor(month, levels = month.abb))
+obsbkg 
 ```
 
-Let's see where these fall relative to each other.
+Let's see where these presence/background points fall relative to each other.
 
-```{r plot_background}
-plot(mask, reset = FALSE, key.pos = NA, breaks = "equal")
-plot(coast, col = "orange", add = TRUE)
-plot(obsbkg |> filter(class == "presence") |> st_geometry(), 
-     col = "yellow", cex = 0.1, add = TRUE)
-plot(obsbkg |> filter(class == "background") |> st_geometry(), 
-     col = "blue", cex = 0.2, add = TRUE)
-```
+```{r plot_presence_background}
 
-
-These would be the data locations we feed into the model.  So is that reasonable solution?  At first glance it seems to be, so we'll choose this background sampling approach; aggressive thinning followed by random sampling while avoiding observations. We can't know if another approach might be better until we actually start modeling.
-
-# Model input per month
-
-So, how do we go about producing a model input data set for each month?  For that we need to **iterate**; if iteration is new to you please be sure to check out our [iteration tutorial](https://bigelowlab.github.io/handytandy/iterations.html).  We are going to make a small function that handles creating the combined observation/background dataset for each month.  We'll use a *for-loop* to iterate over the months of the year: Jan, Feb, ..., Nov, Dec.  
-
-:::{.callout-note}
-Heads up!  Your assignment will be to use this function in an `lapply()` function that will iterate over the months for you in lieu of a *for-loop*.  More on that later...
-:::
-
-## A function we can reuse
-
-Here we make a function that needs at least three arguments: the complete set of observations, the mask used for thinning (possibly agressively) and sampling, as well as the month to filter the observations.  The pseudo-code might look like this...
+ggplot() +
+  geom_sf(data = obsbkg, 
+          mapping = aes(col = class),
+          alpha =  0.2, shape = "circle small", size = 1) +
+  geom_sf(data = coast, col = "orange")  + 
+  labs(x = "Longitude", y = "Latitude", title = "All") +   
+  theme_bw() +  # <- make a simple white background
+  scale_fill_okabe_ito() +  # <-- colorblind friendly for N Record
+  facet_wrap(~month)
 
 ```
-for a given month
-  filter the obs for that month
-  thin the obs (possibly agressively)
-  sample the background
-  return the combined thined observations/random background
+
+These would be the data locations we feed into the model.  So is that reasonable solution? At first glance it seems to be, so we'll choose this background sampling approach; thinning with biased sampling. We can't know if another approach might be better until we actually start modeling.
+
+Let's save this.
+
+```{r save_model_input}
+write_model_input(obsbkg, scientificname = "Mola mola")
 ```
 
-Phew! That's a lot of steps.  To manually run those steps 12 times would be tedious, so we roll that into a function that we can reuse 12 times instead.  
+Note that there is a function for reading model input files, too. 
 
-This function will have a name, `make_model_input_by_month`.  It's a long name, but it makes it obvious what it does. First we start with the documentation.  
-
-```{r make_model_input_by_month}
-#' Builds a model input data set for a given month
-#' 
-#' @param mon str, the month abbreviation for the month of interest ("Jan" by default)
-#' @param obs table, the complete observation data set
-#' @param raster stars, the object that defines the sampling space, usually a mask
-#' @param species str, the name of the species prepended to the name of the output files.
-#'   (By default "Mola mola" which gets converted to "Mola_mola")
-#' @param path the output data path to store this data (be default "model_input")
-#' @param agg_fact num, aggregation factor for aggressive thinning.  By default is 1 which means no aggregation.  For very dense observations, try a value of 2 to thin more aggressively.
-#' @param obs_to_bkg num, the ratio of observations to background
-#' @param min_obs num, this sets a threshold below which we wont try to make a model. (Default is 10)
-#' @return a named two element list of greedy and conservative model inputs - they are tables
-make_model_input_by_month  = function(mon = "Jan",
-                                      obs = read_observations("Mola mola"),
-                                      raster = NULL,
-                                      obs_to_bkg = 2, 
-                                      species = "Mola mola",
-                                      path = data_path("model_input"),
-                                      agg_fact = 1, 
-                                      min_obs = 10){
-  # the user *must* provide a raster
-  if (is.null(raster)) stop("please provide a raster")
-  
-  # filter the obs
-  obs = obs |>
-    filter(month == mon[1])
-  
-  # check that we have at least some records, if not enough then alert the user
-  # and return NULL
-  if (nrow(obs) < min_obs){
-    warning("sorry, this month has too few observations: ", mon)
-    return(NULL)
-  }
-  
-  # make sure the output path exists, if not, make it
-  path = make_path(path)
-  
-  thinned = thin_by_cell(obs, raster, agg_fact = agg_fact)
-  
-  # make the greedy model input by sampling the background
-  model_input = sample_background(thinned, raster, nrow(thinned) * obs_to_bkg,
-                                   return_pres = TRUE) |>
-    mutate(month = mon, .before = 1)
-  # save the data
-  filename = sprintf("%s-%s-model_input.gpkg", 
-                     gsub(" ", "_", species),
-                     mon)
-  write_sf(model_input, file.path(path, filename))
-  
-  # return, but disable automatic printing
-  invisible(model_input)
-}
-```
-
-# Reusing the function in a loop
-
-The above may seem like a lot, but it really simply reproduces we took earlier with a few safety checks. Now we use a for loop to run through the months, calling our function each time. Happily, the built-in variable `month.abb` has all of the month names in order.
-
-```{r for_loop}
-for (this_month in month.abb){
-  result = make_model_input_by_month(this_month,
-                                     obs = read_observations(scientificname = "Mola mola"),
-                                     raster = mask,
-                                     species = "Mola mola",
-                                     path = data_path("model_input"),
-                                     agg_fact = 2, 
-                                     min_obs = 3)
-}
-```
-# Listing the output files
-
-You can always look into you output directory to see if the files we made, but even better might be to use the computer to list them for you.  If your species is found in sufficient numbers year round you'll have 12 files.  However, any month that has fewer than the minimum number of observations will not have an output file. 
-
-Here we have the computer generate the list of files that were written.
-
-```{r listing_files}
-path = data_path("model_input")
-files = list.files(path, full.names = TRUE)
-files
-```
-
-# Reading the files
-
-We know that each file should have a table with spatial information included. Let's read one back and plot it.
-
-```{r read_file}
-x = read_sf(files[1])
-filename = basename(files[1])
-plot(x['class'], 
-     axes = TRUE,  
-     pch = "+", 
-     extent = mask, 
-     main = filename,
-     reset = FALSE)
-plot(coast, col = "orange", add = TRUE)
+```{r read_model_input}
+x = read_model_input(scientificname = "Mola mola")
 ```
 
 
 # Recap
 
-We have prepared what we call "model inputs", in particular for *Mola mola*, by selecting background points.  There are lots of other approaches, too, but for the sake of learning stick with this approach.  We developed a function that will produce our model inputs for a given month, and saved them to disk.  Then we read at least one back and showed that we can restore these from disk.
+We have prepared what we call "model inputs", in particular for *Mola mola*, by thinning observations and selecting background points.  There are lots of other approaches to creating the model input, but for the sake of learning we'll stick with this approach.  We developed a function that will produce our model inputs for a given month, and saved them to disk.
 
 # Coding Assignment C02
 
-Create a function to read the correct model input when given the species, month and path.
+::: {.callout-note appearance="simple"}
+Use the menu option File > New File > R Script to create a blank file. Save the file (even though it is empty) in the “assignment” directory as “assignment_script_2.R”. Use this file to build a script that meets the following challenge. Note that the existing file, “assignment_script_0.R” is already there as an example.
 
-Use the menu option `File > New File > R Script` to create a blank file. Save the file (even though it is empty) in the "functions" directory as "my_model_input.R".  Use this file to build a function (or set of functions) that uses this set of arguments.  Below is a template to help you get started. Copy the code below to your "my_model_input.R" and then edit it.
+For each month select at random one presence and one background point (so, that will be 2 x 12 = 24 points!) from your model input data.  Then select three (3) variables in the Brickman present monthly data set, and build a single table that has the three variables for the 24 points.  This is **very similar** to the [C00 coding chapter homework](https://bigelowlab.github.io/ColbyForecasting/C00_coding.html#coding-assignment).
 
+Hint!  Check out [iterating over grouped tables](https://bigelowlab.github.io/handytandy/iterations.html#groups-in-a-table) and the [`slice_sample` function](https://dplyr.tidyverse.org/reference/slice.html). 
 
-```{r read_model_input}
-#' Reads a model input file given species, month, approach and path
-#' 
-#' @param scientificname chr, the species name
-#' @param mon chr month abbreviation
-#' @param path chr the path to the data directory
-read_model_input = function(scientificname = "Mola mola",
-                            mon = "Jan",
-                            path = data_path("model_input")){
-    # your part goes in here
-}
+Here's what our table looks like for the *Mola mola* species.  
+
+```
+Simple feature collection with 24 features and 7 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: -72.99962 ymin: 39.07928 xmax: -65.51362 ymax: 43.89779
+Geodetic CRS:  WGS 84
+# A tibble: 24 × 8
+   month class                      geom point  depth   SSS   SST  Tbtm
+ * <fct> <fct>               <POINT [°]> <chr>  <dbl> <dbl> <dbl> <dbl>
+ 1 Jan   presence   (-72.05151 39.07928) p1    2116.   33.3 10.9   3.72
+ 2 Jan   background (-67.48795 40.36045) p2     789.   31.7  6.65  4.67
+ 3 Feb   presence   (-72.00363 39.67702) p1     231.   31.9  5.73  8.64
+ 4 Feb   background (-69.79134 40.60724) p2      60.4  31.2  3.58  3.89
+ 5 Mar   presence       (-72.056 39.205) p1    1362.   32.4  6.98  4.13
+ 6 Mar   background (-67.73474 42.66383) p2     194.   30.9  1.88  7.58
+ 7 Apr   presence      (-72.263 39.4379) p1     386.   31.7  7.08  6.44
+ 8 Apr   background  (-72.8351 39.20875) p2     102.   31.5  6.74 10.3 
+ 9 May   presence          (-66.3 41.25) p1     281.   31.2  8.03  7.12
+10 May   background (-71.43661 39.62007) p2    1867.   31.9 11.4   3.78
+# ℹ 14 more rows
+# ℹ Use `print(n = ...)` to see more rows
 ```
 
-# Challenge C02
+:::
 
-And here we add one challenge...
-
-Create a function that accepts a species name and path and returns all of the model inputs for all available months.  Hint: try using R's [built in iterator `lapply()`](https://bigelowlab.github.io/handytandy/iterations.html#iteration-with-lapply-and-sapply) and the bind_rows() function.  The output should be a single spatial data table with columns `month`, `class` and `geometry`.
 
