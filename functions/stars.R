@@ -122,5 +122,35 @@ bind_bands.list <- function(x, ..., along = list(month = month.abb)){
 }
 
 
+plot_stars_months = function(x,
+                             colors = c("magma",
+                                        "inferno",
+                                        "plasma",
+                                        "viridis",
+                                        "cividis",
+                                        "rocket",
+                                        "mako",
+                                        "turbo")[1],
+                             coast = read_coastline(),
+                             coast_color = "white"){
+  
+  #' Plot a single stars attribute (variable) over many months
+  #' 
+  #' @param x stars object with one or more months along the 'month' dimension
+  #' @param colors str the name of the color table to use.  See 
+  #'  deatils here https://ggplot2-book.org/scales-colour.html#sec-colour-continuous
+  #' @param coast sf coast line or NULL to skip
+  #' @return a ggplot2 object
+  gg = ggplot2::ggplot() +
+    stars::geom_stars(data = x[1]) + 
+    ggplot2::scale_fill_viridis_c(option = colors[1], limits = c(0,1)) + 
+    ggplot2::coord_sf(crs = sf::st_crs(x)) + 
+    ggplot2::facet_wrap(~month)
+  if (!is.null(coast)) {
+    gg = gg + 
+      ggplot2::geom_sf(data = sf::st_geometry(coast), color = coast_color)
+  }
+  gg
+}
 
 

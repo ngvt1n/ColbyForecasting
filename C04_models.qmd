@@ -186,7 +186,7 @@ These are analogous to a chef preparing a meal and deciding what tools might be 
 
 But first... 
 
-## Hyperparmeters? - what the heck?  
+## Hyperparameters? - say what?  
 
 > Many models have **hyperparameters** that can’t be learned directly from a single data set when training the model. Instead, we can train many models in a grid of possible hyperparameter values and see which ones turn out best. [from Tidy Models with R](https://www.tidymodels.org/learn/work/tune-svm/)
 

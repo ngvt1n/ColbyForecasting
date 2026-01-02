@@ -227,6 +227,7 @@ model_fit_vi = function(x,
   #' @param ... other arguments for the [vip::vi] function
   #' @return a table if variable importance values
   
+  
   x |>
     dplyr::filter(wflow_id %in% wids) |>
     dplyr::rowwise() |>
@@ -325,26 +326,47 @@ model_fit_spec <- function(x){
 
 write_model_fit = function(x,
                         filename = "model_fits",
-                        path = data_path("models")){
+                        path = data_path("models"),
+                        packed = FALSE){
   
   #' Write a workflowset fit object to file
   #' 
   #' @param x workflowset object
   #' @param filename str a name for the file
   #' @param path str or NULL, if not NULL then write each fitted workflow to file
+  #' @param packed logical, if TRUE then butcher the models before saving
   #' @return the input workflowset
 
-  readr::write_rds(x, file.path(path, sprintf("%s.rds", filename)))
+  if (packed){
+    orig_x = x
+    for (i in seq_len(nrow(x))) {
+      x[i,]$.workflow[[1]] <- bundle::bundle(x[i,]$.workflow[[1]])
+    }
+    saveRDS(x, file.path(path, sprintf("%s.rds", filename)))
+    x = orig_x
+  } else {
+    saveRDS(x, file.path(path, sprintf("%s.rds", filename)))
+  }
+  
+  x
 }
 
 read_model_fit = function(filename = "model_fits",
-                            path = data_path("models")){
+                          path = data_path("models"),
+                          packed = FALSE){
   
   #' Read a workflowset fit
   #' 
   #' @param filename str a name for the file
   #' @param path str or NULL, if not NULL then write each fitted workflow to file
+  #' @param packed logical, if TRUE unbundle the workflows
   #' @return a named list with one or more "last_fit" model objects
   #' 
-  readr::read_rds(file.path(path, sprintf("%s.rds", filename)))
+  x = readRDS(file.path(path, sprintf("%s.rds", filename)))
+  if (packed){
+    for (i in seq_len(nrow(x))) {
+      x[i,]$.workflow[[1]] <- bundle::unbundle(x[i,]$.workflow[[1]])
+    }
+  }
+  x
 }

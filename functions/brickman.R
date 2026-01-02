@@ -86,6 +86,7 @@ read_brickman = function(db = brickman_database() |>
                                          year == "PRESENT",
                                          interval == "mon"), 
                          add = c("none", "depth", "month")[1], 
+                         log_me = c("none", "depth", "Xbtm"),
                          path = brickman_path()){
 
   #' Read Brickman data given a database
@@ -103,6 +104,7 @@ read_brickman = function(db = brickman_database() |>
   #' @param add str, zero or more static variable to add like "depth" and "month"
   #'  (as long as the database includes interval 'mon'). If the value is not
   #'  "depth" and/or "month", like "none", then nothing is added.
+  #' @param log_me str, zero or more variable to log scale
   #' @param path str, the brickman data path
   #' @return stars array
   
@@ -144,11 +146,11 @@ read_brickman = function(db = brickman_database() |>
   # AND the database includes mon
   if (("month" %in% tolower(add)) && 
       ("mon" %in% db$interval) && 
-      !("Month" %in% names(x))){
+      !("month" %in% names(x))){
     x = c(stars_as_months(x), x, along = NA_integer_)
   } # add month?
   
-  if (("depth" %in% tolower(add)) && !("Depth" %in% names(x))){
+  if (("depth" %in% tolower(add)) && !("depth" %in% names(x))){
     db = brickman_database()
     depth = read_brickman(db |> filter(scenario == "STATIC", var == "depth"))
     if (length(dim(x) == 3)) {
@@ -158,12 +160,23 @@ read_brickman = function(db = brickman_database() |>
     x = c(depth, x, along = NA_integer_)
   } # add depth?
   
+  if ("Xbtm" %in% log_me && "Xbtm" %in% names(x)){
+    x = x |>
+      dplyr::mutate(Xbtm = log(Xbtm, base = 10))
+  }
+  
+  if ("depth" %in% log_me && "depth" %in% names(x)){
+    x = x |>
+      dplyr::mutate(depth = log(depth, base = 10))
+  }
+  
+  
   return(x)
 }
 
 stars_as_months = function(template,
                      use = c("number", "name")[1],
-                     factored = TRUE){
+                     factored = FALSE){
   
   #' Create a "month" stars object modeled after a template
   #' 
@@ -187,18 +200,18 @@ stars_as_months = function(template,
   r = template[1] 
   r[[1]][] <- arr
   r = r |>
-    rlang::set_names("Month")
-  r = if(tolower(use[1]) == "number"){
+    rlang::set_names("month")
+  if(tolower(use[1]) == "number"){
       # number
       if (factored){
-        dplyr::mutate(r, Month = factor(.data$Month, levels = 1:12))
+        r = dplyr::mutate(r, month = factor(.data$month, levels = 1:12))
       } 
     } else { 
       # name
       if(factored){
-        dplyr::mutate(r, Month = factor(month_as_name(.data$Month), levels = month.abb))
+        r = dplyr::mutate(r, month = factor(month_as_name(.data$month), levels = month.abb))
       } else {
-        dplyr::mutate(r, Month = month_as_name(.data$Month))
+        r = dplyr::mutate(r, month = month_as_name(.data$month))
       }
     }  
   return(r)

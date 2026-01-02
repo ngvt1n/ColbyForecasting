@@ -5,7 +5,7 @@ title: "Prediction"
 > It's tough to make predictions, especially about the future.
 > ~ Yogi Berra
 
-Finally we come to the end product of forecasting: prediction. This last step is actually fairly simple, given a recipe and model (now bundled in a `workflow` container).  We have already made predictions using tables of input covariates, but we now want to predict across the entire domain of our Brickman data set.  This requires predicting with `stars` objects not tables. You may recall that we are able to read these arrays, display them and extract point data from them. But we haven't used them *en mass* as a variable yet.
+Finally we come to the end product of forecasting: prediction. This last step is actually fairly simple, given a recipe and model (now bundled in a `workflow` container). We want to predict across the entire domain of our Brickman data set. You may recall that we are able to read these arrays, display them and extract point data from them. But we haven't used them *en mass* as a variable yet.
 
 # Setup
 

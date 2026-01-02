@@ -235,7 +235,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#fit-the-models-to-the-various-recipes" id="toc-fit-the-models-to-the-various-recipes" class="nav-link" data-scroll-target="#fit-the-models-to-the-various-recipes"><span class="header-section-number">6</span> Fit the models to the various recipes</a>
   <ul class="collapse">
-  <li><a href="#hyperparmeters---what-the-heck" id="toc-hyperparmeters---what-the-heck" class="nav-link" data-scroll-target="#hyperparmeters---what-the-heck"><span class="header-section-number">6.1</span> Hyperparmeters? - what the heck?</a>
+  <li><a href="#hyperparameters---say-what" id="toc-hyperparameters---say-what" class="nav-link" data-scroll-target="#hyperparameters---say-what"><span class="header-section-number">6.1</span> Hyperparameters? - say what?</a>
   <ul class="collapse">
   <li><a href="#iterate-to-find-various-hyperparameter-sets" id="toc-iterate-to-find-various-hyperparameter-sets" class="nav-link" data-scroll-target="#iterate-to-find-various-hyperparameter-sets"><span class="header-section-number">6.1.1</span> Iterate to find various hyperparameter sets</a></li>
   <li><a href="#choose-the-best-set-of-hyperparameters-for-each-model" id="toc-choose-the-best-set-of-hyperparameters-for-each-model" class="nav-link" data-scroll-target="#choose-the-best-set-of-hyperparameters-for-each-model"><span class="header-section-number">6.1.2</span> Choose the best set of hyperparameters for each model</a></li>
@@ -334,7 +334,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>model_input_split</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>&lt;Training/Testing/Total&gt;
-&lt;11704/2817/14521&gt;</code></pre>
+&lt;11340/3181/14521&gt;</code></pre>
 </div>
 </div>
 <p>We can see that there are 5 times more points (observations and background) reserved for training. Now we can look at the spatial distribution of the two groups.</p>
@@ -520,8 +520,8 @@ coords:    2</code></pre>
 <section id="fit-the-models-to-the-various-recipes" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Fit the models to the various recipes</h1>
 <p>But first…</p>
-<section id="hyperparmeters---what-the-heck" class="level2" data-number="6.1">
-<h2 data-number="6.1" class="anchored" data-anchor-id="hyperparmeters---what-the-heck"><span class="header-section-number">6.1</span> Hyperparmeters? - what the heck?</h2>
+<section id="hyperparameters---say-what" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="hyperparameters---say-what"><span class="header-section-number">6.1</span> Hyperparameters? - say what?</h2>
 <blockquote class="blockquote">
 <p>Many models have <strong>hyperparameters</strong> that can’t be learned directly from a single data set when training the model. Instead, we can train many models in a grid of possible hyperparameter values and see which ones turn out best. <a href="https://www.tidymodels.org/learn/work/tune-svm/">from Tidy Models with R</a></p>
 </blockquote>
@@ -544,7 +544,7 @@ coords:    2</code></pre>
 <pre><code>i 1 of 4 resampling: default_glm</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>✔ 1 of 4 resampling: default_glm (1s)</code></pre>
+<pre><code>✔ 1 of 4 resampling: default_glm (956ms)</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>i 2 of 4 tuning:     default_rf</code></pre>
@@ -553,7 +553,7 @@ coords:    2</code></pre>
 <pre><code>i Creating pre-processing data to finalize unknown parameter: mtry</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>✔ 2 of 4 tuning:     default_rf (8m 23.8s)</code></pre>
+<pre><code>✔ 2 of 4 tuning:     default_rf (8m 44.7s)</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>i 3 of 4 tuning:     default_btree</code></pre>
@@ -571,39 +571,43 @@ coords:    2</code></pre>
 <pre><code>There were issues with some computations   A: x2</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>There were issues with some computations   A: x4</code></pre>
+<pre><code>There were issues with some computations   A: x3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>There were issues with some computations   A: x6</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>There were issues with some computations   A: x7</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>There were issues with some computations   A: x10</code></pre>
+<pre><code>There were issues with some computations   A: x9</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>There were issues with some computations   A: x11</code></pre>
+<pre><code>There were issues with some computations   A: x12</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>There were issues with some computations   A: x13</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>There were issues with some computations   A: x15</code></pre>
+<pre><code>There were issues with some computations   A: x15
+There were issues with some computations   A: x15</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code></code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>✔ 3 of 4 tuning:     default_btree (20.9s)</code></pre>
+<pre><code>✔ 3 of 4 tuning:     default_btree (1m 10.3s)</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>i 4 of 4 tuning:     default_maxent</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>✔ 4 of 4 tuning:     default_maxent (44.8s)</code></pre>
+<pre><code>✔ 4 of 4 tuning:     default_maxent (1m 10.6s)</code></pre>
 </div>
 </div>
 <p>Here’s a quick plot of the outputs, with each metric being showcased.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autoplot</span>(wflow)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autoplot</span>(wflow)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -618,9 +622,9 @@ coords:    2</code></pre>
 <h3 data-number="6.1.2" class="anchored" data-anchor-id="choose-the-best-set-of-hyperparameters-for-each-model"><span class="header-section-number">6.1.2</span> Choose the best set of hyperparameters for each model</h3>
 <p>What is the best configuration of hyperparameters for each model? Well, for “default_glm” there is only one, so that sort of doesn’t count - we chose the only one we have. For the others we have to dig in to figure out which set of hyperparameters is best for each model. We have written a wrapper function to speed things along; it accepts the workflow set, the full split data object and the path and filename to save the models.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>model_fits <span class="ot">=</span> <span class="fu">workflowset_selectomatic</span>(wflow, model_input_split,</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">filename =</span> <span class="st">"Mola_mola-v1-model_fits"</span>,</span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">path =</span> <span class="fu">data_path</span>(<span class="st">"models"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>model_fits <span class="ot">=</span> <span class="fu">workflowset_selectomatic</span>(wflow, model_input_split,</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">filename =</span> <span class="st">"Mola_mola-v1-model_fits"</span>,</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">path =</span> <span class="fu">data_path</span>(<span class="st">"models"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>→ A | warning: Passed invalid argument 'info' - entries on it should be passed as direct arguments. This warning will become an error in a future version., Passed invalid function arguments: nthread. These should be passed as a list to argument 'params'. Conversion from argument to 'params' entry will be done automatically, but this behavior will become an error in a future version., Parameter 'watchlist' has been renamed to 'evals'. This warning will become an error in a future version., Argument 'objective' is only for custom objectives. For built-in objectives, pass the objective under 'params'. This warning will become an error in a future version.</code></pre>
 </div>
@@ -631,15 +635,15 @@ There were issues with some computations   A: x1</code></pre>
 <div class="cell-output cell-output-stderr">
 <pre><code></code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>model_fits</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>model_fits</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 7
   wflow_id  splits               id    .metrics .notes   .predictions .workflow 
   &lt;chr&gt;     &lt;list&gt;               &lt;chr&gt; &lt;list&gt;   &lt;list&gt;   &lt;list&gt;       &lt;list&gt;    
-1 default_… &lt;split [11704/2817]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;
-2 default_… &lt;split [11704/2817]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;
-3 default_… &lt;split [11704/2817]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;
-4 default_… &lt;split [11704/2817]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;</code></pre>
+1 default_… &lt;split [11340/3181]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;
+2 default_… &lt;split [11340/3181]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;
+3 default_… &lt;split [11340/3181]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;
+4 default_… &lt;split [11340/3181]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;</code></pre>
 </div>
 </div>
 <p>So we get back 4 models (that’s good). Let’s look at the random forest and pick out the <code>.metrics</code>, <code>.predictions</code> and <code>.workflow</code> columns. Note that the leading <code>.</code> is simply there to let you you that these parts were derived in the <code>selectomatic</code> function.</p>
@@ -652,15 +656,15 @@ There were issues with some computations   A: x1</code></pre>
 <h3 data-number="6.2.1" class="anchored" data-anchor-id="a-table-of-metrics"><span class="header-section-number">6.2.1</span> A table of metrics</h3>
 <p>We can quickly pull together summary statistics.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_metrics</span>(model_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_metrics</span>(model_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 5
   wflow_id       accuracy boyce_cont roc_auc tss_max
   &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-1 default_glm       0.695      0.865   0.751   0.435
-2 default_rf        0.740      0.913   0.811   0.509
-3 default_btree     0.735      0.978   0.813   0.504
-4 default_maxent    0.690      0.960   0.800   0.482</code></pre>
+1 default_glm       0.729      0.929   0.804   0.552
+2 default_rf        0.733      0.921   0.813   0.545
+3 default_btree     0.746      0.845   0.822   0.564
+4 default_maxent    0.726      0.910   0.821   0.551</code></pre>
 </div>
 </div>
 </section>
@@ -668,7 +672,7 @@ There were issues with some computations   A: x1</code></pre>
 <h3 data-number="6.2.2" class="anchored" data-anchor-id="confusion-matrices-and-accuracy"><span class="header-section-number">6.2.2</span> Confusion matrices and accuracy</h3>
 <p>We can plot confusion matrices and add accuracy. Accuracy is the proportion of the data that are predicted correctly. Of course, we would love to see each of these models achieve perfect accuracy, but that is the nature of modeling.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_confmat</span>(model_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_confmat</span>(model_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -682,7 +686,7 @@ There were issues with some computations   A: x1</code></pre>
 <h3 data-number="6.2.3" class="anchored" data-anchor-id="rocauc"><span class="header-section-number">6.2.3</span> ROC/AUC</h3>
 <p>We can collate plots of Receiver Operator Curves (ROC) from which the Area Under the Curve (AUC) is computed.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_roc_auc</span>(model_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_roc_auc</span>(model_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -696,7 +700,7 @@ There were issues with some computations   A: x1</code></pre>
 <h3 data-number="6.2.4" class="anchored" data-anchor-id="variable-importance"><span class="header-section-number">6.2.4</span> Variable importance</h3>
 <p>Variable importance can tell us about the contribution each covariate variable makes toward the whole. It doesn’t compare between models, just within a given model. Reading the heatmap below scans a given model’s row. For instance, <code>MLD</code> and <code>SST</code> seem to have equally high importance for <code>default_rf</code> (random forest) compared to the other covariates.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_vip</span>(model_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_vip</span>(model_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -711,21 +715,21 @@ There were issues with some computations   A: x1</code></pre>
 <h2 data-number="6.3" class="anchored" data-anchor-id="exploring-a-single-model-fit-result"><span class="header-section-number">6.3</span> Exploring a single model fit result</h2>
 <p>Let’s pull out one of the model fits and look at it’s parts.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> model_fits <span class="sc">|&gt;</span></span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(wflow_id <span class="sc">==</span> <span class="st">"default_rf"</span>)</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>rf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>rf <span class="ot">=</span> model_fits <span class="sc">|&gt;</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(wflow_id <span class="sc">==</span> <span class="st">"default_rf"</span>)</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>rf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 7
   wflow_id  splits               id    .metrics .notes   .predictions .workflow 
   &lt;chr&gt;     &lt;list&gt;               &lt;chr&gt; &lt;list&gt;   &lt;list&gt;   &lt;list&gt;       &lt;list&gt;    
-1 default_… &lt;split [11704/2817]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;</code></pre>
+1 default_… &lt;split [11340/3181]&gt; trai… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;</code></pre>
 </div>
 </div>
 <section id="splits" class="level4" data-number="6.3.0.1">
 <h4 data-number="6.3.0.1" class="anchored" data-anchor-id="splits"><span class="header-section-number">6.3.0.1</span> <code>splits</code></h4>
 <p>These are the allocations of training and testing elements in the original dataset. We can see it looks like the same distribution as our initial split (above).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autoplot</span>(rf<span class="sc">$</span>splits[[<span class="dv">1</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autoplot</span>(rf<span class="sc">$</span>splits[[<span class="dv">1</span>]])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -739,15 +743,15 @@ There were issues with some computations   A: x1</code></pre>
 <h4 data-number="6.3.0.2" class="anchored" data-anchor-id="metrics"><span class="header-section-number">6.3.0.2</span> <code>.metrics</code></h4>
 <p>These are simply the metrics associated with the best set of hyperparameters. We can see the aggregate of the “pre-selection” metrics in the metrics plot earlier.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>.metrics[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>.metrics[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 4
   .metric    .estimator .estimate .config             
   &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;               
-1 accuracy   binary         0.740 Preprocessor1_Model1
-2 boyce_cont binary         0.913 Preprocessor1_Model1
-3 roc_auc    binary         0.811 Preprocessor1_Model1
-4 tss_max    binary         0.509 Preprocessor1_Model1</code></pre>
+1 accuracy   binary         0.733 Preprocessor1_Model1
+2 boyce_cont binary         0.921 Preprocessor1_Model1
+3 roc_auc    binary         0.813 Preprocessor1_Model1
+4 tss_max    binary         0.545 Preprocessor1_Model1</code></pre>
 </div>
 </div>
 </section>
@@ -755,22 +759,22 @@ There were issues with some computations   A: x1</code></pre>
 <h4 data-number="6.3.0.3" class="anchored" data-anchor-id="predictions"><span class="header-section-number">6.3.0.3</span> <code>.predictions</code></h4>
 <p>Here we can see the <strong>testing</strong> data predictions. Ultimately we are interested in <code>.pred_class</code> and <code>class</code>, but there’s a lot of data to explore in here.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>.predictions[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>.predictions[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 2,817 × 6
+<pre><code># A tibble: 3,181 × 6
    .pred_presence .pred_background  .row .pred_class class      .config         
             &lt;dbl&gt;            &lt;dbl&gt; &lt;int&gt; &lt;fct&gt;       &lt;fct&gt;      &lt;chr&gt;           
- 1        0.206              0.794     1 background  presence   Preprocessor1_M…
- 2        0.0141             0.986     2 background  presence   Preprocessor1_M…
- 3        0.00650            0.994    10 background  background Preprocessor1_M…
- 4        0.0111             0.989    17 background  background Preprocessor1_M…
- 5        0.140              0.860    21 background  background Preprocessor1_M…
- 6        0.00655            0.993    22 background  background Preprocessor1_M…
- 7        0.00946            0.991    25 background  background Preprocessor1_M…
- 8        0.00347            0.997    30 background  background Preprocessor1_M…
- 9        0.00718            0.993    36 background  background Preprocessor1_M…
-10        0.0137             0.986    44 background  background Preprocessor1_M…
-# ℹ 2,807 more rows</code></pre>
+ 1          0.161            0.839     2 background  presence   Preprocessor1_M…
+ 2          0                1         3 background  presence   Preprocessor1_M…
+ 3          0                1         4 background  presence   Preprocessor1_M…
+ 4          0                1         7 background  background Preprocessor1_M…
+ 5          0                1        12 background  background Preprocessor1_M…
+ 6          0                1        15 background  background Preprocessor1_M…
+ 7          0                1        22 background  background Preprocessor1_M…
+ 8          0                1        24 background  background Preprocessor1_M…
+ 9          0                1        26 background  background Preprocessor1_M…
+10          0                1        27 background  background Preprocessor1_M…
+# ℹ 3,171 more rows</code></pre>
 </div>
 </div>
 </section>
@@ -778,7 +782,7 @@ There were issues with some computations   A: x1</code></pre>
 <h4 data-number="6.3.0.4" class="anchored" data-anchor-id="workflow"><span class="header-section-number">6.3.0.4</span> <code>.workflow</code></h4>
 <p>The workflow is the encapsulation of the model formula form the recipe, the tuned hyperparameters and well as any fitting coefficients for the mode. When we print it we get a summary statement about the model.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>.workflow[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>rf<span class="sc">$</span>.workflow[[<span class="dv">1</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>══ Workflow [trained] ══════════════════════════════════════════════════════════
 Preprocessor: Recipe
@@ -791,17 +795,17 @@ Model: rand_forest()
 Ranger result
 
 Call:
- ranger::ranger(x = maybe_data_frame(x), y = y, mtry = min_cols(~1L,      x), num.trees = ~1222L, importance = ~"impurity", num.threads = 1,      verbose = FALSE, seed = sample.int(10^5, 1), probability = TRUE) 
+ ranger::ranger(x = maybe_data_frame(x), y = y, mtry = min_cols(~6L,      x), num.trees = ~56L, importance = ~"impurity", num.threads = 1,      verbose = FALSE, seed = sample.int(10^5, 1), probability = TRUE) 
 
 Type:                             Probability estimation 
-Number of trees:                  1222 
-Sample size:                      11704 
+Number of trees:                  56 
+Sample size:                      11340 
 Number of independent variables:  9 
-Mtry:                             1 
+Mtry:                             6 
 Target node size:                 10 
 Variable importance mode:         impurity 
 Splitrule:                        gini 
-OOB prediction error (Brier s.):  0.2032269 </code></pre>
+OOB prediction error (Brier s.):  0.2342822 </code></pre>
 </div>
 </div>
 </section>
@@ -809,7 +813,7 @@ OOB prediction error (Brier s.):  0.2032269 </code></pre>
 <h3 data-number="6.3.1" class="anchored" data-anchor-id="partial-dependence-plot"><span class="header-section-number">6.3.1</span> Partial dependence plot</h3>
 <p>Partial dependence reflects the relative contribution of each variable influence over it’s full range of values. The output is a grid grid of plots showing the relative distribution of the variable (bars) as well as the relative influence of the variable (line).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_pdp</span>(model_fits, <span class="at">wid =</span> <span class="st">"default_btree"</span>, <span class="at">title =</span> <span class="st">"Boosted Tree"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_fit_pdp</span>(model_fits, <span class="at">wid =</span> <span class="st">"default_btree"</span>, <span class="at">title =</span> <span class="st">"Boosted Tree"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
