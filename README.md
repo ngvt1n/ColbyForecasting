@@ -76,6 +76,7 @@ forecasts, to understanding the complexities of forecasts’ impacts.
   [folder](https://github.com/BigelowLab/ColbyForecasting/tree/main/reading/Woodard)
   And this paper [Pershing
   2020](https://github.com/BigelowLab/ColbyForecasting/blob/main/reading/Pershing.elementa.2020.00076.pdf)
+  The Pershing paper will be a cornerstone for our course projects, so take a careful look at that one.
   
 ### 2. Thurs Jan 8
 
