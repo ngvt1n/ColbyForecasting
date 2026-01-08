@@ -85,7 +85,7 @@ This schedule has built in flexibility. Changes will be noted.
 - Lecture: Ocean Science / Gulf of Maine Primer
 
 - Discussion: [Forecast
-  cards](https://docs.google.com/spreadsheets/d/1gPwJF2XAKD9WftHAgRY9X_CXpn-S0gQFDZeF7yxdIGo/edit?gid=0#gid=0)
+  cards](https://docs.google.com/spreadsheets/d/19dHtW6VxCXAzko9deqdjYOKp_4KQO96rSsBxxxeN8Yc/edit?gid=0#gid=0)
   and [Table 1 in this
   paper](https://github.com/BigelowLab/ColbyForecasting/blob/main/reading/RecordEtal2025inreview.pdf)
 
