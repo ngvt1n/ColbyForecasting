@@ -92,13 +92,13 @@ This schedule has built in flexibility. Changes will be noted.
 - R Tutorial:
   [Observations](https://bigelowlab.github.io/ColbyForecasting/C01_observations.html)
 
+- R Tutorial: [Background
+  Points](https://bigelowlab.github.io/ColbyForecasting/C02_background.html)
+
 - Reading assignment for next time: [Ross 2021](https://github.com/BigelowLab/ColbyForecasting/blob/main/reading/Ross2021.pdf)
 [Briscoe 2022](https://github.com/BigelowLab/ColbyForecasting/blob/main/reading/Briscoe2022.pdf)
 [Mollomo
   1998](https://github.com/BigelowLab/ColbyForecasting/blob/main/reading/Mollomo1998.pdf)
-
-- R Tutorial: [Background
-  Points](https://bigelowlab.github.io/ColbyForecasting/C02_background.html)
 
 ### 3. Monday Jan 12
 
