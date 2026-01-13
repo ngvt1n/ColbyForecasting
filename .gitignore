@@ -57,3 +57,5 @@ rsconnect/
 
 # ben's development folder
 btupper/*
+
+docs/**/**
