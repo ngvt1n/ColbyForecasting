@@ -41,9 +41,9 @@ read_observations = function(scientificname = "Temora longicornis",
   db = brickman_database() |>
     filter(scenario == "STATIC", var == "mask")
   mask = read_brickman(db)
-  hitOrMiss = extract_brickman(mask, obs)
+  hitOrMiss = extract_brickman(mask, x)
   
-  obs = obs |>
+  x = x |>
     filter(!is.na(hitOrMiss$value))
   
   return(x)
