@@ -25,4 +25,4 @@ ggplot(data = m1,
          y = SST,
        )) + 
   geom_point() +
-  ggtitle("RCP4.5 2055 SST at buoy M01")
+  ggtitle("RCP4.5 2055 SST at buoy M01 ")

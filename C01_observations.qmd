@@ -21,11 +21,11 @@ It is **SO IMPORTANT** to have a really good handle on your data. To get that ha
 
 # Setup
 
-As always, we start by running our setup function. Start RStudio/R, and relaod your project with the menu `File > Recent Projects`. Then source `setup.R`.  We'll also assign a new variable with our species name - we do that so it's easy to substitute in another species if needed.  We make it ALL CAPS so that it reminds us that it is more like a constant than a variable.
+As always, we start by running our setup function. Start RStudio/R, and reload your project with the menu `File > Recent Projects`. Then source `setup.R`.  We'll also assign a new variable with our species name - we do that so it's easy to substitute in another species if needed.  We make it ALL CAPS so that it reminds us that it is more like a constant than a variable.
 
 ```{r source_setup, warning = FALSE}
 source("setup.R")
-SPECIES = "Mola mola"
+SPECIES = "Meganyctiphanes norvegica"
 ```
 
 # Observations
@@ -33,7 +33,7 @@ SPECIES = "Mola mola"
 Next is to read in the observations you have already downloaded for that species.
 
 ```{r read_obs}
-obs = read_obis(SPECIES)
+obs = fetch_obis(SPECIES)
 obs
 ```
 
@@ -115,7 +115,7 @@ Well now one has to wonder about a single observation of 25 animals. Let's check
 
 ```{r obs_indcount_25}
 obs |>
-  filter(individualCount == 25) |>
+  filter(individualCount == 100) |>
   browse_obis()
 ```
 
