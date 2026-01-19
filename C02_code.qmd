@@ -1,0 +1,104 @@
+---
+title: "C02_code"
+---
+
+```{r}
+coast <- read_coastline()
+obs <- read_observations()
+db <- brickman_database() |>
+  filter(scenario == "STATIC", var == "mask")
+mask <- read_brickman(db)
+```
+
+```{r}
+LON0 <- -67
+LAT0 <- 46
+all_counts <- count(st_drop_geometry(obs), month) # counting is faster without spatial baggage
+all_counts
+```
+```{r}
+ggplot() +
+  geom_sf(data = obs, alpha = 0.2, shape = "circle small", size = 1) +
+  geom_sf(data = coast, col = "orange") +
+  geom_text(data = all_counts,
+    mapping = aes(x = LON0,
+      y = LAT0,
+      label = sprintf("n: %i", .data$n)),
+    size = 3) +
+  labs(x = "Longitude", y = "Latitude", title = "All observations") +
+  facet_wrap(~month)
+```
+
+```{r}
+thinned_obs <- sapply(month.abb,
+  function(mon) {
+    thin_by_cell(obs |> filter(month == mon), mask)
+  }, simplify = FALSE) |>
+  dplyr::bind_rows()
+
+# another count
+thinned_counts <- count(st_drop_geometry(thinned_obs), month)
+
+ggplot() +
+  geom_sf(data = thinned_obs,
+    alpha = 0.2,
+    shape = "circle small",
+    size = 1) +
+  geom_sf(data = coast, col = "orange") +
+  geom_text(data = thinned_counts,
+    mapping = aes(x = LON0,
+      y = LAT0,
+      label = sprintf("n: %i", .data$n)),
+    size = 3) +
+  labs(x = "Longitude", y = "Latitude", title = "Thinned observations") +
+  facet_wrap(~month)
+```
+
+```{r}
+bias_map <- rasterize_point_density(obs, mask) # <-- note the original observations
+
+ggplot() +
+  geom_stars(data = bias_map, aes(fill = count)) +
+  scale_fill_viridis_b(na.value = "transparent") +
+  geom_sf(data = coast, col = "orange") +
+  labs(x = "Longitude", y = "Latitude", title = "Bias map using all observations")
+```
+
+```{r}
+nback_avg <- mean(all_counts$n) |>
+  round()
+nback_avg
+```
+
+```{r}
+obsbkg <- sapply(month.abb,
+  function(mon) {
+    sample_background(thinned_obs |> filter(month == mon), # <- just this month
+      bias_map,
+      method = "bias",  # <-- it needs to know it's a bias map
+      return_pres = TRUE, # <-- give me the obs back, too
+      n = nback_avg) |>   # <-- how many points
+      mutate(month = mon, .before = 1)
+  }, simplify = FALSE) |>
+  bind_rows() |>
+  mutate(month = factor(month, levels = month.abb))
+obsbkg
+```
+
+```{r}
+# drop the spatial baggage to speed the tally
+count(st_drop_geometry(obsbkg), month, class)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = obsbkg, 
+          mapping = aes(col = class),
+          alpha =  0.4, shape = "circle small", size = 1) +
+  geom_sf(data = coast, col = "orange")  + 
+  labs(x = "Longitude", y = "Latitude", title = "All") +   
+  theme_bw() +  # <- make a simple white background
+  scale_fill_okabe_ito() +  # <-- colorblind friendly for N Record
+  facet_wrap(~month)
+```
+
