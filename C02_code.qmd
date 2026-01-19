@@ -80,9 +80,10 @@ nback_avg
 ```{r}
 obsbkg <- sapply(month.abb,
   function(mon) {
-    sample_background(thinned_obs |> filter(month == mon), # <- just this month
-      bias_map,
-      method = "bias",  # <-- it needs to know it's a bias map
+    sample_background(
+      thinned_obs |> filter(month == mon),
+      mask,
+      method = "random",  # <-- it needs to know it's a bias map
       return_pres = TRUE, # <-- give me the obs back, too
       n = nback_avg) |>   # <-- how many points
       mutate(month = mon, .before = 1)
