@@ -1,13 +1,20 @@
 ---
 title: "C02_code"
 ---
+```{r}
+SPECIES = "Temora longicornis"
+```
 
 ```{r}
 coast <- read_coastline()
-obs <- read_observations()
+obs <- read_observations(SPECIES)
 db <- brickman_database() |>
   filter(scenario == "STATIC", var == "mask")
 mask <- read_brickman(db)
+```
+```{r}
+count(obs |> st_drop_geometry(), basisOfRecord)
+obs |> filter(basisOfRecord == "HumanObservation") |> slice(1) |> browse_obis()
 ```
 
 ```{r}
@@ -102,3 +109,9 @@ ggplot() +
   facet_wrap(~month)
 ```
 
+```{r}
+write_model_input(obsbkg, scientificname = SPECIES)
+```
+
+Homework:
+For each month select at random one presence and one background point (so, that will be 2 x 12 = 24 points!) from your model input data. Then select three (3) variables in the Brickman present monthly data set, and build a single table that has the three variables for the 24 points. This is very similar to the C00 coding chapter homework.
