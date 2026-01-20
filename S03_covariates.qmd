@@ -1,0 +1,185 @@
+---
+title: "Covariates"
+format: html
+---
+
+> “In the end that was the choice you made, and it doesn’t matter how hard it was to make it. It matters that you did.”  
+>   ~ Cassandra Clare
+
+Now we turn our attention to what we know and guess about the environments.  We are using the [Brickman data](https://github.com/BigelowLab/ColbyForecasting/wiki/Brickman) to make habitat suitability maps for select species under two climate scenarios (RCP45 and RCP85) at two different times (2055 and 2075) in the future.  Each variable we might use is called a covariate or predictor. Our covariates are nicely packaged up and tidy, but the reality is that it often requires a good deal of data wrangling if the data are messy. 
+
+Our step here is to make sure that two or more covariates are not highly correlated if they are, then we would likely want to drop all but one.  This comes with a *caveat* though... as marine ecologists we know that water depth is always important, and we know that time of year (in our case month) is always important.  So, regardless of what our analyses of covariates may tell us, we are going to make darn sure that depth and month are included.  
+
+# Setup
+
+As always, we start by running our setup function. Start RStudio/R, and reload your project with the menu `File > Recent Projects`. 
+
+```{r setup}
+source("setup.R")
+```
+
+# A broad approach - looking for correlation across the domain
+
+We can look at the entire domain, the complete spatial extent of our arrays of data, to look for correlated variables.  For example, we might wonder if sea surface temperature (SST) and sea floor temperature (Tbtm) vary together, that is when one goes up does the other goes up? That sort of thing. We have ways of getting at those correlations.
+
+## Reading in the covariates
+
+We'll read in the Brickman database, then filter two different subsets to read: "STATIC" covariate bathymetry that apply across all scenarios and times and monthly covariates for the "PRESENT" period. 
+
+```{r read_brickman}
+db = brickman_database() |>
+  dplyr::filter(scenario == "PRESENT", interval == "mon")
+present = read_brickman(db)
+```
+
+## Make a `pairs` plot
+
+A `pairs` plot is a plot often used in exploratory data analysis.  It makes a grid of mini-plots of a set of variables, and reveals the relationships among the variables pair-by-pair.  It's easy to make.
+
+```{r pairs}
+pairs(present)
+```
+
+In the lower left portion of the plot we see paired scatter plots, at upper right we see the correlation values of the pairs, and long the diagonal we see a histogram of each variable. Some pairs are highly correlated, say over `0.7`, and to include both in the modeling might not provide us with greater predictive power. It may feel counter intuitive to remove any variables - more data means more information, right?  And more information means more informed models. Consider two measurements, human arm length and inseam. We might use these to predict if a person is tall, but since they are probably strongly collinear/correlated do we really need both?
+
+## Identify the most independent variables (and the most collinear)
+
+We have a function that can help use select which variables to remove.  `filter_collinear()` returns a listing of variables it suggests we keep. It attaches to the return value an attribute (like a post-it note stuck on a box) that lists the complementary variables that it suggests we drop. We are choosing a particular method, but you can learn more about using R's help for `?filter_collinear`.
+
+```{r filter_collinear}
+keep = filter_collinear(present, method = "cor_caret", cutoff = 0.65)
+keep
+```
+
+```{r drop_me}
+drop_me = attr(keep, "to_remove")
+drop_me
+```
+
+Of course, we can decide to ignore this advice, and pick which ever ones we want including keeping them all. In fact, marine ecologists are loathe to drop depth; in coastal science in particular depth plays a significant role in ecology and biology. And we are modeling across the year, so we'll include month as a variable that can be important.
+
+```{r add_depth_and_month}
+keep = c("depth", "month", keep)
+```
+
+Whatever selection of variables we decide to model with, we will save this listing to a file.  That way we can refer to it programmatically, but that comes later.
+
+## A closer look at the model input data
+
+Before we do commit to a selection of variables, let's turn our attention back to our presence-background points, and look at just those chosen values rather than at values drawn form across the entire domain. Let's open the file that contain our presence-background data during the PRESENT climate scenario.
+
+```{r present_model_input}
+model_input = read_model_input(scientificname = "Temora longicornis")
+model_input
+```
+
+And let's read the covariate data again, but this time we'll add depth. We won't drop any variables, like Xbtm, just yet - we can do that later.
+
+```{r reload_brickman}
+present = read_brickman(add = c("depth"))
+```
+
+Next we'll extract data values from our covariates.
+
+```{r extract}
+variables = extract_brickman(present, model_input, form = "wide")
+variables
+```
+
+We are going to call a plotting function, `plot_pres_vs_bg()`, that wants some of the data from `model_input` and some of the data in `variables`.  So, we have to do some data wrangling to combine those; we'll add `class` to `variables` and then drop the `.id` column.
+
+```{r wrangle_variables}
+variables = variables |>
+  mutate(class = model_input$class) |>    # the $ extracts a column 
+  select(-.id)                            # the minus means "deselect" or "drop"
+variables
+```
+
+Finally, can make a specialized plot comparing our variables for each class: `presence` and `background`.  We'll drop month temporarily since we can do a simply tally of those.
+
+```{r plot_pres_vs_bg, warning = FALSE}
+plot_pres_vs_bg(variables |> select(-month), "class")
+```
+
+How does this inform our thinking about reducing the number of variables?  For which variables do `presence` and `background` values mirror each other?  Which have the least overlap? We know that the model works by finding optimal combinations of covariates for the species.  If there is never a difference between the conditions for `presences` and `background` then how will it find the optimal niche conditions?  **Good questions!**
+
+## Saving a file to keep track of modeling choices
+
+You may have noticed that we write a lot of things to files (aka, "writing to disk"). It's a useful practice especially when working with a multi-step process. One particular file, a configuration file, is used frequently in data science to store information about the choices we make as we work through our project.  Configuration files generally are simple text files that we can **easily** get the computer to read and write.  
+
+In R, a confguration is treated as a named list.  Each element of a list is named, but beyond that there aren't any particular rules about configurations. You can learn more about configurations [in this tutorial](https://bigelowlab.github.io/handytandy/files-configurations.html).
+
+Let's make a configuration list that holds 4 items: version identifier ("v1"), species name, the background selection scheme and the names of the variables to model with.
+
+```{r make_config}
+cfg = list(
+  version = "v1",
+  scientificname = "Temora longicornis",
+  background = "average of observations per month",
+  background = "random",
+  thinning = "true",
+  keep_vars =  keep)
+```
+
+We can access by name three ways using what is called "indexing" : using the `[[` indexing brackets, using the `$` indexing operator or using the `getElement()` function.  
+```{r indexing}
+cfg[['scientificname']]
+cfg[[2]]
+cfg$scientificname
+getElement(cfg, "scientificname")
+getElement(cfg, 2)
+```
+
+Now we'll write this list to a file.  First let's set up a path where we might store these configurations, and for that matter, to store our modeling files.  We'll make a new directory, `models/Aug` and write the configuration there.  We'll use the famous "YAML" format to store the file.  See the file `functions/configuration.R` for documentation on reading and writing.
+
+```{r save config}
+ok = make_path(data_path("models")) # make a directory for models
+write_configuration(cfg)            
+```
+
+Let's also save the now updated model_input data (it now includes covariate data for our version "v1").  Keep in mind that this contains all possible covariates (in out case that means we include `Xbtm`) even though we may drop one or more in subsequent steps.
+
+```{r save_input_data}
+write_model_input(variables, scientificname = "Temora longcornis", version = "v1")
+```
+
+
+Use the `Files` pane to navigate to your personal data directory.  Open the `.yaml` file - this is what your configuration looks like in YAML.  Fortunately we don't mess by hand with these much.
+
+```
+version: v1
+scientificname: Temora longicornis
+background: mean
+keep_vars:
+- depth
+- month
+- SSS
+- U
+- Sbtm
+- V
+- Tbtm
+- MLD
+- SST
+```
+
+# Recap
+
+We loaded the covariates for the "PRESENT" climate scenario and looked at collinearity across the entire study domain.  We invoked a function that suggests which variables to keep and which to drop based upon collinearity.  We examined the covariates at just the `presence` and `background` locations.  We then saved a configuration for later reuse.
+
+# Coding Assignment C03
+
+::: {.callout-note appearance="simple"}
+Select a second species to download and build both a configuration file and a model input file. Consider a species that is complimentary to your first species. For instance, in our example we selected a grazer of gelatinous creatures for our first species, so we might chose the second species to a type of gelatinous creature. But it should complimentary in other ways, too, such as temporal and spatial extent.   
+
+Record your steps in an R markdown file using the `File > New File > R Markdown...` menu option. Be sure to select the "GitHub Document (Markdown)" template. This will ensure that your work will render on your github page properly.
+
+![select GitHub Document (Markdown)](images/github_markdown.png)
+Call the file 'C03_assignment.Rmd'. Complete the steps necessary to download a species, create a configuration file and a model input file. Since you have a different species name but all of the parameters will be the same, you can continue to use 'v1' as the version identifier.  At any time you can render the R Markdown to plain vanilla to a plain github-ready markdown text file by selecting the "knit" button.
+
+![the knit button](images/knit.png)
+> Hint! R markdown files run the directory where they are stored.  So, if you save 'C03_assignment.Rmd' at the top level of the directory you will be fine.  If you save it somewhere else, like `assignments`, you will have to adjust the path to the setup file when you call `source("setup.R")` to something that provides the full path.  Try this `source("/home/<username>/<project_folder>/setup.R")`, but, of course, user the proper `username` and `project_folder` values.
+
+> Another hint!  You customized the function `read_observations()` for your first species. Keep in mind you can always have species specific functions like `read_molamola()` and `read_humpback()` if it makes life easier.  Your call!
+
+Lastly, commit your work and push the changes to your own github repository. 
+:::
