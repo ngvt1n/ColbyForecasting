@@ -1,0 +1,119 @@
+---
+title: "My Second Species"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+source("/home/tvnguy28/ColbyForecasting/setup.R")
+```
+
+Our second species, Ditylum brightwelli, is an autotrophic unicellular phytoplankton and is preyed on by our first species, the copepod Temora longicornis 
+
+```{r}
+SPECIES2 = "Ditylum brightwellii"
+
+cfg = list(
+  version = "v1",
+  scientificname = SPECIES2,
+  background = "average of observations per month",
+  bias = "random",
+  thinning = "true",
+  keep_vars =  keep)
+
+
+write_configuration(cfg)            
+```
+
+
+```{r}
+rcfg = read_configuration(SPECIES2, "v1")
+```
+
+```{r load_prequisites}
+coast = read_coastline()
+present = brickman_database() |>
+  dplyr::filter(scenario == "PRESENT", interval == "mon") |> read_brickman()
+mask = brickman_database() |>
+  filter(scenario == "STATIC", var == "mask") |> read_brickman()
+```
+
+```{r load obs}
+obs = read_Dbrightwelli()
+```
+
+```{r thin_observations}
+thinned_obs = sapply(month.abb,
+               function(mon){ 
+                 temp_x = obs |> filter(month == mon)
+                 if(nrow(temp_x) == 0) return(NULL)
+                 thin_by_cell(temp_x, mask)
+               }, simplify = FALSE) |>
+  dplyr::bind_rows() 
+```
+
+```{r all_observations_count}
+LON0 = -67
+LAT0 = 46
+all_counts = count(st_drop_geometry(obs), month) # counting is faster without spatial baggage
+all_counts
+```
+
+```{r n_background_per_month}
+nback_avg = mean(all_counts$n) |>
+  round()
+nback_avg
+```
+
+```{r sample_background}
+obsbackground = sapply(month.abb,
+    function(mon){ 
+      temp_x = thinned_obs |> filter(month == mon)
+      if (nrow(temp_x) == 0) return(NULL)
+      sample_background(temp_x, # <- just this month
+                       bias_map,
+                       method = "bias",  # <-- it needs to know it's a bias map
+                       return_pres = TRUE, # <-- give me the obs back, too
+                       n = nback_avg) |>   # <-- how many points
+        mutate(month = mon, .before = 1)
+    }, simplify = FALSE) |>
+  bind_rows() |>
+  mutate(month = factor(month, levels = month.abb))
+obsbackground 
+```
+
+```{r save_model_input}
+write_model_input(obsbackground, scientificname = SPECIES2)
+```
+
+```{r}
+model_input = read_model_input(scientificname = SPECIES2)
+```
+
+
+```{r filter_collinear}
+keep = filter_collinear(present, method = "cor_caret", cutoff = 0.65)
+keep
+```
+
+
+```{r add_depth_and_month}
+keep = c("depth", "month", keep)
+```
+
+```{r present_model_input}
+model_input = read_model_input(scientificname = "Ditylum brightwellii")
+model_input
+```
+
+```{r wrangle_variables}
+variables = variables |>
+  mutate(class = model_input$class) |>    # the $ extracts a column 
+  select(-.id)                            # the minus means "deselect" or "drop"
+variables
+```
+

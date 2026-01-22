@@ -140,7 +140,7 @@ write_configuration(cfg)
 Let's also save the now updated model_input data (it now includes covariate data for our version "v1").  Keep in mind that this contains all possible covariates (in out case that means we include `Xbtm`) even though we may drop one or more in subsequent steps.
 
 ```{r save_input_data}
-write_model_input(variables, scientificname = "Temora longcornis", version = "v1")
+write_model_input(variables, scientificname = "Temora longicornis", version = "v1")
 ```
 
 
