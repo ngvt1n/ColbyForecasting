@@ -48,3 +48,22 @@ read_observations = function(scientificname = "Temora longicornis",
   
   return(x)
 }
+
+
+read_Tlongicornis = function(scientificname = "Temora longicornis",
+                             minimum_year = 1970, 
+                             filtered_basisOfRecord = "PreservedSpecimen",
+                             filter_individualCount = TRUE,
+                             ...){
+  return(read_observations(scientificname))
+
+}
+
+
+read_Dbrightwelli = function(scientificname = "Ditylum brightwellii",
+                             minimum_year = 1970, 
+                             filtered_basisOfRecord = "PreservedSpecimen",
+                             filter_individualCount = TRUE,
+                             ...){
+  return(read_observations(scientificname))
+}
