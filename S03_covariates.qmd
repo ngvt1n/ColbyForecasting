@@ -116,7 +116,7 @@ cfg = list(
   version = "v1",
   scientificname = "Temora longicornis",
   background = "average of observations per month",
-  background = "random",
+  bias = "random",
   thinning = "true",
   keep_vars =  keep)
 ```
