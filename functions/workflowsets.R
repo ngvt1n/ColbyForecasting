@@ -441,46 +441,34 @@ model_fit_spec <- function(x){
 
 
 write_model_fit = function(x,
-                        scientificname,
-                        version = NULL,
-                        path = data_path("models_fits"),
+                        filename = "model_fits",
+                        path = data_path("models"),
                         packed = FALSE){
   
   #' Write a workflowset fit object to file
   #' 
   #' @param x workflowset object
-  #' @param version chr or NULL, if not NULL add this to the filename. A version 
+  #' @param filename str a name for the file
   #' @param path str or NULL, if not NULL then write each fitted workflow to file
   #' @param packed logical, if TRUE then butcher the models before saving
   #' @return the input workflowset
-
-  path = make_path(path)
-  spname = gsub(" ", "_", scientificname, fixed = TRUE)
-  fname = if (is.null(version)){
-    sprintf("%s-model_fits.rds", spname)
-  } else {
-    sprintf("%s-%s-model_fits.rds", spname, version)
-  }
-
-  filename = file.path(path[1], fname[1])
 
   if (packed){
     orig_x = x
     for (i in seq_len(nrow(x))) {
       x[i,]$.workflow[[1]] <- bundle::bundle(x[i,]$.workflow[[1]])
     }
-    saveRDS(x, filename)
+    saveRDS(x, file.path(path, sprintf("%s.rds", filename)))
     x = orig_x
   } else {
-    saveRDS(x, filename)
+    saveRDS(x, file.path(path, sprintf("%s.rds", filename)))
   }
   
   x
 }
 
-read_model_fit = function(scientificname,
-                          version = NULL,
-                          path = data_path("models_fits"),
+read_model_fit = function(filename = "model_fits",
+                          path = data_path("models"),
                           packed = FALSE){
   
   #' Read a workflowset fit
@@ -491,21 +479,6 @@ read_model_fit = function(scientificname,
   #' @param packed logical, if TRUE unbundle the workflows
   #' @return a named list with one or more "last_fit" model objects
   #' 
-
-  spname = gsub(" ", "_", scientificname, fixed = TRUE)
-  fname = if (is.null(version)){
-    sprintf("%s-model_fits.rds", spname)
-  } else {
-    sprintf("%s-%s-model_fits.rds", spname, version)
-  }
-
-  filename = file.path(path[1], fname[1])
-
-  if (!file.exists(filename)) {
-    message("file not found:", filename[1])
-    return(NULL)
-  }
-
   x = readRDS(file.path(path, sprintf("%s.rds", filename)))
   if (packed){
     for (i in seq_len(nrow(x))) {
