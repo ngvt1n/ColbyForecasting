@@ -1,0 +1,112 @@
+---
+title: "Prediction"
+---
+
+```{r setup}
+source("setup.R")
+```
+
+# Load the Brickman data
+
+```{r load_covar}
+cfg = read_configuration(scientificname = SPECIES,
+                         version = "v1", 
+                         path = data_path("models"))
+db = brickman_database()
+db = brickman_database()
+present_conditions = read_brickman(db |> filter(scenario == "PRESENT", 
+                                                interval == "mon"),
+                       add = c("depth", "month")) |>
+  select(all_of(cfg$keep_vars))
+```
+
+# Load the workflow
+
+```{r load_workflow}
+model_fits = read_model_fit(filename = "Temora_longicornis-v1-model_fits")
+model_fits
+```
+
+
+# Make a prediction
+
+First we shall make a "nowcast" which is just a prediction of the current environmental conditions. 
+
+## Nowcast
+
+First make the prediction using `predict_stars()`.  The function yields a `stars` array object that has one attribute (variable) for each row in the `model_fits` table. We simply provide the covariates (predictor variables) and the fu nction takes care of the rest.
+
+```{r nowcast}
+nowcast = predict_stars(model_fits, present_conditions)
+nowcast
+```
+Now we can plot what is often called a "habitat suitability index" (hsi) map. We can 
+
+```{r plot_nowcast_maxent, warning = FALSE}
+plot_prediction(nowcast['default_btree'])
+```
+
+We can also plot a presence/absence labeled map, but keep in mind it is just a thresholded version of the above where "presence" means `prediction >= 0.5`. Of course, you can select other values to threshold the habitat suitablility scores.
+
+```{r plot_class_labels, warning = FALSE}
+pa_nowcast = threshold_prediction(nowcast)
+plot_prediction(pa_nowcast['default_btree'])
+```
+
+## Forecast
+
+Now let's try our hand at forecasting - let's try RCP85 in 2075.  First we load those parameters, then run the prediction and plot.
+
+```{r load_2075_RCP85, warning = FALSE}
+covars_rcp85_2075 = read_brickman(db |> filter(scenario == "RCP85", 
+                                               year == 2075, 
+                                               interval == "mon"),
+                                  add = c("depth", "month")) |>
+  select(all_of(cfg$keep_vars))
+```
+
+```{r forecast}
+forecast_2075 = predict_stars(model_fits, covars_rcp85_2075)
+forecast_2075
+```
+
+```{r plot_forecast, warning = FALSE}
+plot_prediction(forecast_2075['default_btree'])
+```
+
+
+:::{.callout-note}
+Don't forget that [there are other ways](https://github.com/BigelowLab/ColbyForecasting/wiki/Spatial) to plot array based spatial data.
+:::
+
+## Save the predictions
+
+It's easy to save the predictions (and read then back with `read_prediction()`).
+
+```{r save_pred}
+# make sure the output directory exists
+path = make_path("predictions")
+
+write_prediction(nowcast,
+                 scientificname = cfg$scientificname,
+                 version = cfg$version,
+                 year = "CURRENT",
+                 scenario = "CURRENT")
+write_prediction(forecast_2075,
+                 scientificname = cfg$scientificname,
+                 version = cfg$version,
+                 year = "2075",
+                 scenario = "RCP85")
+```
+
+# Recap
+
+We made both a nowcast and a predictions using previously saved model fits. Contrary to Yogi Berra's claim, it's actually pretty easy to predict the future.  Perhaps more challenging is to interpret the prediction.  We bundled these together to make time series plots, and we saved the predicted values.
+
+# Coding Assignment
+
+::: {.callout-note appearance="simple"}
+For each each climate scenario create a monthly forecast (so that's three time periods: PRESENT, 2055 and 2075 and three scenarios CURRENT, RCP45, RCP85) and save each to in your `predictions` directory.  In the end you should have 5 files saved (one for PRESENT and two each for 2055 and 2075).
+
+Do the same for your second species.  Ohhh, perhaps this a good time for another R markdown or R script to keep it all straight?
+:::
