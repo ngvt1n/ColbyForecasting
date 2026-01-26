@@ -1,0 +1,238 @@
+---
+title: "Models"
+output: html_document
+---
+
+
+```{r setup}
+source("setup.R")
+```
+
+```{r second_species_name}
+SPECIES2 = "Ditylum brightwellii"
+```
+
+# Load data - choose a month and sampling approach
+
+```{r load_data}
+cfg = read_configuration(scientificname = SPECIES2, version = "v1")
+model_input = read_model_input(scientificname = SPECIES2, 
+                               version = "v1",
+                               log_me = c("depth", "Xbtm")) |>
+  dplyr::mutate(month = month_as_number(.data$month)) |>
+  select(all_of(c("class", cfg$keep_vars)))
+```
+
+# Splitting the data into groups
+
+## Initial split into training and testing groups
+
+```{r initial_split}
+model_input_split = spatial_initial_split(model_input, 
+                        prop = 1 / 5,     # 20% for testing
+                        strategy = spatial_block_cv) # see ?spatial_block_cv
+model_input_split
+```
+
+
+```{r initial_split_plot}
+autoplot(model_input_split)
+```
+
+## Split the training group into regional folds
+
+
+```{r cv_training}
+tr_data = training(model_input_split)
+cv_tr_data <- spatial_block_cv(tr_data,
+  v = 5,     
+  cellsize = grid_cellsize(model_input),
+  offset = grid_offset(model_input) + 0.00001
+)
+autoplot(cv_tr_data)
+```
+
+
+# Build a recipe
+
+```{r recipe}
+one_row_of_training_data = dplyr::slice(tr_data,1)
+rec = recipe(one_row_of_training_data, formula = class ~ .)
+rec
+```
+
+```{r recipe_summary}
+summary(rec)
+```
+
+# Create a workflow
+
+
+```{r make_workflow}
+wflow = workflow_set(
+  
+  preproc = list(default = rec), # not much happening in our preprocessor
+  
+  models = list(                 # but we have 4 models to add
+    
+      # very simple - nothing to tune
+      glm = logistic_reg(
+          mode = "classification") |>
+        set_engine("glm"),
+      
+      # two knobs to tune
+      rf = rand_forest(
+          mtry = tune(),
+          trees = tune(),
+          mode = "classification") |>
+        set_engine("ranger", 
+                   importance = "impurity"),
+      
+      # so many things to tune!
+      btree = boost_tree(
+          mtry = tune(), 
+          trees = tune(), 
+          tree_depth = tune(), 
+          learn_rate = tune(), 
+          loss_reduction = tune(), 
+          stop_iter = tune(),
+          mode = "classification") |>
+        set_engine("xgboost"),
+    
+      # just two again
+      maxent = maxent(
+          feature_classes = tune(),
+          regularization_multiplier = tune(),
+          mode = "classification") |>
+        set_engine("maxnet")
+  )
+)
+wflow
+```
+
+
+## Chosing metrics for measuring how well the models do
+
+
+```{r metrics}
+metrics = sdm_metric_set(yardstick::accuracy)
+metrics
+```
+
+
+# Fit the models to the various recipes
+
+### Iterate to find various hyperparameter sets
+
+```{r fit, warning = FALSE}
+wflow <- wflow |>
+  workflow_map("tune_grid",
+    resamples = cv_tr_data, 
+    grid = 3,
+    metrics = metrics, 
+    verbose = TRUE)
+```
+Here's a quick plot of the outputs, with each metric being showcased.
+```{r plot_wflow}
+autoplot(wflow)
+```
+
+### Choose the best set of hyperparameters for each model
+
+```{r select_best}
+model_fits = workflowset_selectomatic(wflow, model_input_split,
+                                  filename = "Ditylum_brightwellii-v1-model_fits",
+                                  path = data_path("models"))
+model_fits
+```
+
+## Exploring the collection of model fit results
+
+
+### A table of metrics
+
+We can quickly pull together summary statistics.
+
+```{r model_fit_metrics}
+model_fit_metrics(model_fits)
+```
+
+### Confusion matrices and accuracy
+
+```{r model_fit_confmat}
+model_fit_confmat(model_fits)
+```
+### ROC/AUC
+
+
+```{r model_fit_roc_auc}
+model_fit_roc_auc(model_fits)
+```
+
+### Variable importance
+
+```{r model_fit_vip}
+model_fit_varimp_plot(model_fits)
+```
+
+## Exploring a single model fit result
+
+Let's pull out one of the model fits and look at it's parts.
+
+```{r random_forest}
+rf = model_fits |>
+  filter(wflow_id == "default_rf")
+rf
+```
+
+#### `splits`
+
+These are the allocations of training and testing elements in the original dataset. We can see it looks like the same distribution as our initial split (above).
+
+```{r rf_splits}
+autoplot(rf$splits[[1]])
+```
+
+#### `.metrics`
+
+
+```{r rf_metrics}
+rf$.metrics[[1]]
+```
+
+#### `.predictions`
+
+Here we can see the **testing** data predictions. Ultimately we are interested in `.pred_class` and `class`, but there's a lot of data to explore in here.  
+
+```{r rf_preds}
+rf$.predictions[[1]]
+```
+
+#### `.workflow`
+
+The workflow is the encapsulation of the model formula form the recipe, the tuned hyperparameters and well as any fitting coefficients for the mode.  When we print it we get a summary statement about the model.
+
+```{r rf_workflow}
+rf$.workflow[[1]]
+```
+
+
+### Partial dependence plot
+
+Partial dependence reflects the relative contribution of each variable influence over it's full range of values.  The output is a grid grid of plots showing the relative distribution of the variable (bars) as well as the relative influence of the variable (line). 
+```{r pd_plot_gtree}
+model_fit_pdp(model_fits, wid = "default_btree", title = "Boosted Tree")
+```
+
+```{r pd_plot_rf}
+model_fit_pdp(model_fits, wid = "default_rf", title = "Random Forest")
+```
+
+```{r pd_plot_maxent}
+model_fit_pdp(model_fits, wid = "default_maxent", title = "Max Entropy")
+```
+
+```{r pd_plot_glm}
+model_fit_pdp(model_fits, wid = "default_glm", title = "Generalized Linear Model")
+```
+
