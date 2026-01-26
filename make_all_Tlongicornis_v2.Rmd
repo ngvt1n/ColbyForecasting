@@ -102,11 +102,12 @@ plot_pres_vs_bg(variables |> select(-month), "class")
 ```
 ```{r write_cfg}
 cfg = list(
-  version = "v1",
+  version = "v2",
   scientificname = SPECIES,
   background = "average of observations per month",
   bias = "random",
   thinning = "true",
+  metrics = sdm_metric_set(),
   keep_vars =  keep)
 
 
@@ -224,7 +225,7 @@ wflow
 
 
 ```{r metrics}
-metrics = sdm_metric_set(yardstick::accuracy)
+metrics = cfg$metrics
 metrics
 ```
 
@@ -361,6 +362,9 @@ First we shall make a "nowcast" which is just a prediction of the current enviro
 First make the prediction using `predict_stars()`.  The function yields a `stars` array object that has one attribute (variable) for each row in the `model_fits` table. We simply provide the covariates (predictor variables) and the fu nction takes care of the rest.
 
 ```{r nowcast}
+present = read_brickman(db |>  filter(scenario == "PRESENT",  interval == "mon"),
+                       add = c("depth", "month")) |>
+          select(all_of(cfg$keep_vars))
 nowcast = predict_stars(model_fits, present)
 nowcast
 ```
