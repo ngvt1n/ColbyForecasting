@@ -12,27 +12,13 @@ First we run our setup function.
 source("/home/tvnguy28/ColbyForecasting/setup.R")
 ```
 
-Our second species, Ditylum brightwelli, is an autotrophic unicellular phytoplankton and is preyed on by our first species, the copepod Temora longicornis 
+Our second species, Ditylum brightwelli, is an autotrophic unicellular phytoplankton and is preyed on by our first species, the copepod Temora longicornis. To help us keep track of changes to the model input, let's make a configuration file for our second species. 
 
 ```{r}
 SPECIES2 = "Ditylum brightwellii"
-
-cfg = list(
-  version = "v1",
-  scientificname = SPECIES2,
-  background = "average of observations per month",
-  bias = "random",
-  thinning = "true",
-  keep_vars =  keep)
-
-
-write_configuration(cfg)            
 ```
 
-
-```{r}
-rcfg = read_configuration(SPECIES2, "v1")
-```
+Let's load the prequisites required for our model. `coast` represents the coastline of the gulf of maine, which is helpful for visualization. `present` is the Brickman prediction for current temperature and scenarios. From the Brickman dataset, we also pull `mask` which defines the region of the Gulf of Maine for which we have a prediction. This is helpful for filtering out entries and records whose spatial and temporal coords are outside of Brickman's scope.  
 
 ```{r load_prequisites}
 coast = read_coastline()
@@ -42,10 +28,12 @@ mask = brickman_database() |>
   filter(scenario == "STATIC", var == "mask") |> read_brickman()
 ```
 
+We made a custom function to read directly from our second species. Let's read our OBIS entries from here. 
 ```{r load obs}
 obs = read_Dbrightwelli()
 ```
 
+Perform thinning on our data. 
 ```{r thin_observations}
 thinned_obs = sapply(month.abb,
                function(mon){ 
@@ -56,19 +44,21 @@ thinned_obs = sapply(month.abb,
   dplyr::bind_rows() 
 ```
 
+Quickly tally up our observations. Later on, we use this to determine the average count of observations, which we use for our background sampling rate. 
 ```{r all_observations_count}
 LON0 = -67
 LAT0 = 46
 all_counts = count(st_drop_geometry(obs), month) # counting is faster without spatial baggage
 all_counts
 ```
-
+Calculate the background points per month. 
 ```{r n_background_per_month}
 nback_avg = mean(all_counts$n) |>
   round()
 nback_avg
 ```
 
+For each month, generate random background points. 
 ```{r sample_background}
 obsbkg <- sapply(month.abb,
   function(mon) {
@@ -106,6 +96,11 @@ Earlier we saved our model input, with background points in obsbkg. Let's make a
 model_input = obsbkg
 ```
 
+Add depth to list of extract Brickman variables
+```{r}
+present = read_brickman(add = c("depth"))
+```
+
 We extract the environmental covariates. 
 ```{r extract}
 variables = extract_brickman(present, model_input, form = "wide")
@@ -124,7 +119,26 @@ Let's look at a comparison of the covariates distribution between our presence a
 ```{r plot_pres_vs_bg, warning = FALSE}
 plot_pres_vs_bg(variables |> select(-month), "class")
 ```
+```{r write_cfg}
+cfg = list(
+  version = "v1",
+  scientificname = SPECIES2,
+  background = "average of observations per month",
+  bias = "random",
+  thinning = "true",
+  keep_vars =  keep)
 
+
+write_configuration(cfg)          
+```
+
+We wrote the configuration to disk, now it's time to read it back. 
+```{r}
+rcfg = read_configuration(SPECIES2, "v1")
+```
+
+
+And finally, write everything we computed to the disk. 
 ```{r write_model_input}
 write_model_input(variables, scientificname = SPECIES2, version = "v1")
 
