@@ -9,14 +9,14 @@ source("setup.R")
 ```
 
 ```{r second_species_name}
-SPECIES2 = "Ditylum brightwellii"
+CURR_SPECIES = SPECIES2
 ```
 
 # Load data - choose a month and sampling approach
 
 ```{r load_data}
-cfg = read_configuration(scientificname = SPECIES2, version = "v1")
-model_input = read_model_input(scientificname = SPECIES2, 
+cfg = read_configuration(scientificname = CURR_SPECIES, version = "v1")
+model_input = read_model_input(scientificname = CURR_SPECIES, 
                                version = "v1",
                                log_me = c("depth", "Xbtm")) |>
   dplyr::mutate(month = month_as_number(.data$month)) |>

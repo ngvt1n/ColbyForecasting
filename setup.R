@@ -60,3 +60,6 @@ if (!dir.exists(ROOT_DATA_PATH)) {
   if (dir.exists(macosx_junk)) unlink(macosx_junk, recursive = TRUE, force = TRUE)
 }
 
+
+SPECIES = "Temora longicornis"
+SPECIES2 = "Ditylum brightwellii"
