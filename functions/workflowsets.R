@@ -485,7 +485,8 @@ read_model_fit = function(scientificname,
   
   #' Read a workflowset fit
   #' 
-  #' @param filename str a name for the file
+  #' @param scientificname chr, the species name
+  #' @param version chr or NULL, if not NULL add this to the filename. A version 
   #' @param path str or NULL, if not NULL then write each fitted workflow to file
   #' @param packed logical, if TRUE unbundle the workflows
   #' @return a named list with one or more "last_fit" model objects
