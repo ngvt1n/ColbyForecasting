@@ -26,8 +26,8 @@ thinned_obs = sapply(month.abb,
                function(mon){ 
                  temp_x = obs |> filter(month == mon)
                  if(nrow(temp_x) == 0) return(NULL)
-                 thin_by_dist(temp_x, 20000)
-                 # temp_x
+                 # thin_by_dist(temp_x, 20000)
+                 temp_x
                }, simplify = FALSE) |>
   dplyr::bind_rows() 
 ```
@@ -36,7 +36,7 @@ Quickly tally up our observations. Later on, we use this to determine the averag
 ```{r all_observations_count}
 LON0 = -67
 LAT0 = 46
-all_counts = count(st_drop_geometry(thinned_obs), month) # counting is faster without spatial baggage
+all_counts = count(st_drop_geometry(obs), month) # counting is faster without spatial baggage
 ```
 Calculate the background points per month. 
 ```{r n_background_per_month}
@@ -54,7 +54,7 @@ obsbkg <- sapply(month.abb,
       mask,
       method = "random",  # <-- it needs to know it's a bias map
       return_pres = TRUE, # <-- give me the obs back, too
-      n = 2 * nback_avg) |>   # <-- how many points
+      n = nback_avg) |>   # <-- how many points
       mutate(month = mon, .before = 1)
   }, simplify = FALSE) |>
   bind_rows() |>
@@ -62,16 +62,15 @@ obsbkg <- sapply(month.abb,
 ```
 
 View whether the trace line is still visible. 
-```{r plot_presence_background, echo=TRUE}
+```{r plot_presence_background}
 ggplot() +
   geom_sf(data = obsbkg, 
-          mapping = aes(col=class),
-          alpha =  0.4, shape = "circle small", size = 3) +
+          mapping = aes(),
+          alpha =  0.4, shape = "circle small", size = 1) +
   geom_sf(data = coast, col = "orange")  + 
   labs(x = "Longitude", y = "Latitude", title = "All") +   
-  theme_bw()   # <- make a simple white background
-  # scale_fill_okabe_ito() +  # <-- colorblind friendly for N Record
-  # facet_wrap(~month)
+  theme_bw() +  # <- make a simple white background
+  scale_fill_okabe_ito()   # <-- colorblind friendly for N Record
 ```
 
 ## Covariates 
@@ -323,6 +322,11 @@ autoplot(rf$splits[[1]])
 rf$.metrics[[1]]
 ```
 
+```{r}
+autoplot(wflow, metric = "tss")
+```
+ 
+
 #### `.predictions`
 
 Here we can see the **testing** data predictions. Ultimately we are interested in `.pred_class` and `class`, but there's a lot of data to explore in here.  
@@ -385,9 +389,7 @@ nowcast
 Now we can plot what is often called a "habitat suitability index" (hsi) map. We can 
 
 ```{r plot_nowcast_maxent, warning = FALSE}
-plot_prediction(nowcast['default_btree']) +
-   geom_sf(data = obsbkg, color="white",  size = 2)
- 
+plot_prediction(nowcast['default_btree'])
 ```
 
 We can also plot a presence/absence labeled map, but keep in mind it is just a thresholded version of the above where "presence" means `prediction >= 0.5`. Of course, you can select other values to threshold the habitat suitablility scores.
@@ -419,7 +421,9 @@ plot_prediction(forecast_2075['default_btree'])
 ```
 
 
+:::{.callout-note}
 Don't forget that [there are other ways](https://github.com/BigelowLab/ColbyForecasting/wiki/Spatial) to plot array based spatial data.
+:::
 
 ## Save the predictions
 
