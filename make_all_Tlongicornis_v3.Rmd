@@ -26,7 +26,8 @@ thinned_obs = sapply(month.abb,
                function(mon){ 
                  temp_x = obs |> filter(month == mon)
                  if(nrow(temp_x) == 0) return(NULL)
-                 thin_by_cell(temp_x, mask)
+                 thin_by_dist(temp_x, 20000)
+                 # temp_x
                }, simplify = FALSE) |>
   dplyr::bind_rows() 
 ```
@@ -35,8 +36,7 @@ Quickly tally up our observations. Later on, we use this to determine the averag
 ```{r all_observations_count}
 LON0 = -67
 LAT0 = 46
-all_counts = count(st_drop_geometry(obs), month) # counting is faster without spatial baggage
-all_counts
+all_counts = count(st_drop_geometry(thinned_obs), month) # counting is faster without spatial baggage
 ```
 Calculate the background points per month. 
 ```{r n_background_per_month}
@@ -54,11 +54,24 @@ obsbkg <- sapply(month.abb,
       mask,
       method = "random",  # <-- it needs to know it's a bias map
       return_pres = TRUE, # <-- give me the obs back, too
-      n = nback_avg) |>   # <-- how many points
+      n = 2 * nback_avg) |>   # <-- how many points
       mutate(month = mon, .before = 1)
   }, simplify = FALSE) |>
   bind_rows() |>
   mutate(month = factor(month, levels = month.abb))
+```
+
+View whether the trace line is still visible. 
+```{r plot_presence_background, echo=TRUE}
+ggplot() +
+  geom_sf(data = obsbkg, 
+          mapping = aes(col=class),
+          alpha =  0.4, shape = "circle small", size = 3) +
+  geom_sf(data = coast, col = "orange")  + 
+  labs(x = "Longitude", y = "Latitude", title = "All") +   
+  theme_bw()   # <- make a simple white background
+  # scale_fill_okabe_ito() +  # <-- colorblind friendly for N Record
+  # facet_wrap(~month)
 ```
 
 ## Covariates 
@@ -102,11 +115,12 @@ plot_pres_vs_bg(variables |> select(-month), "class")
 ```
 ```{r write_cfg}
 cfg = list(
-  version = "v1",
+  version = "v3",
   scientificname = SPECIES,
   background = "average of observations per month",
   bias = "random",
-  thinning = "true",
+  thinning = "false",
+  metrics = sdm_metric_set(),
   keep_vars =  keep)
 
 
@@ -115,7 +129,7 @@ write_configuration(cfg)
 
 And finally, write everything we computed to the disk. 
 ```{r write_model_input}
-write_model_input(variables, scientificname = SPECIES, version = "v1")
+write_model_input(variables, scientificname = SPECIES, version = "v3")
 ```
 
 ```{r read model input}
@@ -127,7 +141,7 @@ write_model_input(variables, scientificname = SPECIES, version = "v1")
 
 ```{r load_data}
 model_input = read_model_input(scientificname = SPECIES, 
-                               version = "v1",
+                               version = "v3",
                                log_me = c("depth", "Xbtm")) |>
   dplyr::mutate(month = month_as_number(.data$month)) |>
   select(all_of(c("class", cfg$keep_vars)))
@@ -225,6 +239,7 @@ wflow
 
 ```{r metrics}
 metrics = cfg$metrics
+metrics
 ```
 
 
@@ -240,8 +255,6 @@ wflow <- wflow |>
     metrics = metrics, 
     verbose = TRUE)
 ```
-
-
 Here's a quick plot of the outputs, with each metric being showcased.
 ```{r plot_wflow}
 autoplot(wflow)
@@ -251,7 +264,7 @@ autoplot(wflow)
 
 ```{r select_best}
 model_fits = workflowset_selectomatic(wflow, model_input_split,
-                                  filename = "Temora-longicornis-v1-model_fits",
+                                  filename = "Temora_longicornis-v3-model_fits",
                                   path = data_path("models"))
 model_fits
 ```
@@ -282,8 +295,7 @@ model_fit_roc_auc(model_fits)
 ### Variable importance
 
 ```{r model_fit_vip}
-model_fit_varimp_plot(model_fits) +
-  scale_fill_viridis_c(option = "magma")
+model_fit_varimp_plot(model_fits)
 ```
 
 ## Exploring a single model fit result
@@ -350,7 +362,7 @@ model_fit_pdp(model_fits, wid = "default_glm", title = "Generalized Linear Model
 # Prediction
 
 ```{r load_workflow}
-model_fits = read_model_fit(filename = "Temora_longicornis-v1-model_fits")
+model_fits = read_model_fit(filename = "Temora_longicornis-v3-model_fits")
 model_fits
 ```
 
@@ -360,9 +372,10 @@ First we shall make a "nowcast" which is just a prediction of the current enviro
 
 ## Nowcast
 
-First make the prediction using `predict_stars()`.  The function yields a `stars` array object that has one attribute (variable) for each row in the `model_fits` table. We simply provide the covariates (predictor variables) and the fu nction takes care of the rest.
+First make the prediction using `predict_stars()`.  The function yields a `stars` array object that has one attribute (variable) for each row in the `model_fits` table. We simply provide the covariates (predictor variables) and the function takes care of the rest.
 
 ```{r nowcast}
+db = brickman_database()
 present = read_brickman(db |>  filter(scenario == "PRESENT",  interval == "mon"),
                        add = c("depth", "month")) |>
           select(all_of(cfg$keep_vars))
@@ -372,7 +385,9 @@ nowcast
 Now we can plot what is often called a "habitat suitability index" (hsi) map. We can 
 
 ```{r plot_nowcast_maxent, warning = FALSE}
-plot_prediction(nowcast['default_btree'])
+plot_prediction(nowcast['default_btree']) +
+   geom_sf(data = obsbkg, color="white",  size = 2)
+ 
 ```
 
 We can also plot a presence/absence labeled map, but keep in mind it is just a thresholded version of the above where "presence" means `prediction >= 0.5`. Of course, you can select other values to threshold the habitat suitablility scores.
@@ -404,9 +419,7 @@ plot_prediction(forecast_2075['default_btree'])
 ```
 
 
-:::{.callout-note}
 Don't forget that [there are other ways](https://github.com/BigelowLab/ColbyForecasting/wiki/Spatial) to plot array based spatial data.
-:::
 
 ## Save the predictions
 
