@@ -11,7 +11,11 @@ standard_obis_fields = function(){
              "individualCount",
              "decimalLongitude",
              "decimalLatitude",
-             "absence")
+             "absence", 
+             "dataset_id", 
+             "sampleSizeValue",
+             "sampleSizeUnit",
+             "dynamicProperties")
   return(fields)
 }
 
