@@ -1,7 +1,12 @@
 
 read_observations = function(scientificname = "Temora longicornis",
                              minimum_year = 1970, 
-                             filtered_basisOfRecord = "PreservedSpecimen",
+                             filtered_basisOfRecord = c(
+                               "PreservedSpecimen",
+                               "materialSample", 
+                               "MaterialSample", 
+                               "NomenclaturalChecklist"
+                             ),
                              filter_individualCount = TRUE,
                              ...){
   
@@ -30,7 +35,7 @@ read_observations = function(scientificname = "Temora longicornis",
   
   if (!is.null(filtered_basisOfRecord)){
     x = x |>
-      filter(basisOfRecord != filtered_basisOfRecord)
+      filter(!(basisOfRecord %in% filtered_basisOfRecord))
   }
   
   if (filter_individualCount){
@@ -51,19 +56,13 @@ read_observations = function(scientificname = "Temora longicornis",
 
 
 read_Tlongicornis = function(scientificname = "Temora longicornis",
-                             minimum_year = 1970, 
-                             filtered_basisOfRecord = "PreservedSpecimen",
-                             filter_individualCount = TRUE,
                              ...){
-  return(read_observations(scientificname))
+  return(read_observations(scientificname, ...))
 
 }
 
 
 read_Dbrightwelli = function(scientificname = "Ditylum brightwellii",
-                             minimum_year = 1970, 
-                             filtered_basisOfRecord = "PreservedSpecimen",
-                             filter_individualCount = TRUE,
                              ...){
-  return(read_observations(scientificname))
+  return(read_observations(scientificname, ...))
 }
