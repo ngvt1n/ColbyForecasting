@@ -106,8 +106,8 @@ threshold_prediction = function(x, threshold = 0.5){
   x |>
     dplyr::mutate(dplyr::across(dplyr::everything(),
                                ~factor(.x >= threshold[1],
-                                       levels = c(FALSE, TRUE, NA),
-                                       labels = c("abscence", "presence", "land"),
+                                       levels = c(FALSE, TRUE),
+                                       labels = c("abscence", "presence"),
                                        exclude = NULL)))
 }
 
@@ -136,14 +136,17 @@ plot_prediction = function(x,
     cat("numeric\n")
     gg = ggplot2::ggplot() +
       stars::geom_stars(data = x[1]) + 
-      ggplot2::scale_fill_viridis_c(option = colors[1], 
+      ggplot2::scale_fill_viridis_c(option = colors[5], 
                                     limits = c(0,1), 
                                     na.value = "grey50") + 
       ggplot2::facet_wrap(~month)
   } else {
     gg = ggplot2::ggplot() +
       stars::geom_stars(data = x[1]) + 
-      ggplot2::scale_fill_viridis_d() + 
+      ggplot2::scale_fill_viridis_d(
+                                    na.value = "grey50", 
+                                    na.translate = FALSE,
+      ) +
       ggplot2::facet_wrap(~month)
   }
   if (!is.null(coast)) {
@@ -154,6 +157,43 @@ plot_prediction = function(x,
       ggplot2::coord_sf(crs = sf::st_crs(x))
   }
   gg
+}
+
+plot_overall_prediction = function(
+  #' Compose multiple prediction plots together, requires the patchwork package
+  #' 
+  #' @param title Overall title
+  #' @param model Model to use
+  #' @return a patchwork object
+                                   title,
+                                   model,
+                                   nc = nowcast, 
+                                   fc1 = forecast_4.5_2055,
+                                   fc2 = forecast_4.5_2075, 
+                                   fc3 = forecast_8.5_2055, 
+                                   fc4 = forecast_8.5_2075
+) {
+  p0 = plot_prediction(nc[model]) + ggtitle("Nowcast")
+  p5 = model_fit_pdp(model_fits, wid = model, title = "Partial Dependence Curve")
+  p1 = plot_prediction(fc1[model]) + ggtitle("RCP4.5 2055 Forecast")
+  p2 = plot_prediction(fc2[model]) + ggtitle("RCP4.5 2075 Forecast")
+  p3 = plot_prediction(fc3[model]) + ggtitle("RCP8.5 2055 Forecast")
+  p4 = plot_prediction(fc4[model]) + ggtitle("RCP8.5 2075 Forecast")
+  overall = p0 + p5 + p1 + p2 + p3 + p4 + 
+    patchwork::plot_annotation(
+      title = title
+    ) + 
+    patchwork::plot_layout(
+      guides = "collect",
+      axis_titles = "collect",
+      axes = "collect",
+      design = "
+      12
+      34
+      56
+      "
+    )
+  save_png(title, overall, width = 16, height = 18)
 }
 
 write_prediction = function(x, 

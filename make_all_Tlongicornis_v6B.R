@@ -48,6 +48,7 @@ ggplot() +
   scale_fill_viridis_b(na.value = "transparent") +
   geom_sf(data = coast, col = "orange") + 
   labs(x = "Longitude", y = "Latitude", title = "Bias map using all observations")
+save_png("1_bias_map")
 
 
 ## ----all_observations_count-----------------------------------------
@@ -85,6 +86,7 @@ ggplot() +
   theme_bw() +  # <- make a simple white background
   scale_fill_okabe_ito()  +  # <-- colorblind friendly for N Record
   ggtitle("Spatial distribution of presence and background points")
+save_png("1_presence_background")
 
 
 ## ----present_model_input--------------------------------------------
@@ -120,6 +122,7 @@ model_input = read_model_input(scientificname = SPECIES,
 
 ## ----plot_pres_vs_bg, warning = FALSE-------------------------------
 plot_pres_vs_bg(model_input, "class")
+save_png("1_presence_vs_background")
 
 
 ## ----initial_split--------------------------------------------------
@@ -137,12 +140,13 @@ model_input_split
 tr_data = training(model_input_split)
 cv_tr_data <- spatial_block_cv(tr_data,
                                v = 5,     
-                               repeats = 10,
+                               repeats = 5,
                                cellsize = grid_cellsize(model_input),
                                offset = grid_offset(model_input) + 0.00001
 )
 autoplot(cv_tr_data) + 
   ggtitle("Training and testing data cross validation splits across repeats")
+save_png("2_cv_training_splits")
 
 
 ## ----recipe---------------------------------------------------------
@@ -211,6 +215,7 @@ wflow <- wflow |>
 ## ----plot_wflow-------------------------------------------
 autoplot(wflow) + 
   ggtitle("Performance of models across parameter combinations")
+save_png("2_workflow_performance")
 
 ## ----select_best----------------------------------------------------
 model_fits = workflowset_selectomatic(wflow, model_input_split,
@@ -225,15 +230,18 @@ model_fit_metrics(model_fits) |>
 ## ----model_fit_confmat----------------------------------------------
 model_fit_confmat(model_fits) +
   ggtitle("Models confusion matrices")
+save_png("2_models_confusion_matrices")
 
 
 ## ----model_fit_roc_auc----------------------------------------------
 model_fit_roc_auc(model_fits) + 
   ggtitle("Models performance by AUC")
+save_png("2_models_roc_auc")
 
 ## ----model_fit_vip--------------------------------------------------
 model_fit_varimp_plot(model_fits) +
   ggtitle("Permutation importance of covariates for each models")
+save_png("2_models_variable_importance")
 
 
 ## ----random_forest--------------------------------------------------
@@ -253,13 +261,6 @@ rf$.predictions[[1]]
 rf$.workflow[[1]]
 
 
-## ----pd_plot--------------------------------------------------
-model_fit_pdp(model_fits, wid = "default_glm", title = "Generalized Linear Model")
-model_fit_pdp(model_fits, wid = "default_rf", title = "Random Forest")
-model_fit_pdp(model_fits, wid = "default_btree", title = "Boosted Tree")
-model_fit_pdp(model_fits, wid = "default_maxent", title = "Max Entropy")
-
-
 ## ----load_workflow--------------------------------------------------
 model_fits = read_model_fit(filename = sprintf("%s-%s-model_fits", SPECIES, VERSION))
 model_fits
@@ -274,62 +275,65 @@ present = read_brickman(db |>  filter(scenario == "PRESENT",  interval == "mon")
 nowcast = predict_stars(model_fits, present)
 nowcast
 
-
-## ----plot_nowcast_maxent, warning = FALSE---------------------------
-plot_prediction(nowcast['default_glm']) +    ggtitle("GLM Nowcast")
-plot_prediction(nowcast['default_rf']) +     ggtitle("RF Nowcast")
-plot_prediction(nowcast['default_btree']) +  ggtitle("Btree Nowcast")
-plot_prediction(nowcast['default_maxent']) + ggtitle("Maxent Nowcast")
-
-
-## ----plot_class_labels, warning = FALSE-----------------------------
-# pa_nowcast = threshold_prediction(nowcast)
-# plot_prediction(pa_nowcast['default_btree'])
-
-
 ## ----load_2075_RCP85, warning = FALSE-------------------------------
-covars_rcp85_2075 = read_brickman(db |> filter(scenario == "RCP85", 
-                                               year == 2075, 
+covars_rcp85_2055 = read_brickman(db |> filter(scenario == "RCP85", 
+                                               year == 2055, 
                                                interval == "mon"),
                                   add = c("depth", "month")) |>
   mutate(depth = log10(depth)) |>
   select(all_of(cfg$keep_vars))
 
+covars_rcp45_2055 = read_brickman(db |> filter(scenario == "RCP45", 
+                                               year == 2055, 
+                                               interval == "mon"),
+                                  add = c("depth", "month")) |>
+mutate(depth = log10(depth)) |>
+select(all_of(cfg$keep_vars))
+
+covars_rcp85_2075 = read_brickman(db |> filter(scenario == "RCP85", 
+                                               year == 2075, 
+                                               interval == "mon"),
+                                  add = c("depth", "month")) |>
+mutate(depth = log10(depth)) |>
+select(all_of(cfg$keep_vars))
+
+covars_rcp45_2075 = read_brickman(db |> filter(scenario == "RCP45", 
+                                               year == 2075, 
+                                               interval == "mon"),
+                                  add = c("depth", "month")) |>
+mutate(depth = log10(depth)) |>
+select(all_of(cfg$keep_vars))
+
 
 
 ## ----forecast-------------------------------------------------------
-forecast_2075 = predict_stars(model_fits, covars_rcp85_2075)
-forecast_2075
+forecast_4.5_2055 = predict_stars(model_fits, covars_rcp45_2055)
+forecast_4.5_2075 = predict_stars(model_fits, covars_rcp45_2075)
+forecast_8.5_2055 = predict_stars(model_fits, covars_rcp85_2055)
+forecast_8.5_2075 = predict_stars(model_fits, covars_rcp85_2075)
 
 
-## ----plot_forecast, warning = FALSE---------------------------------
-plot_prediction(forecast_2075['default_glm']) + ggtitle("GLM RCP8.5 2075 Forecast")
-plot_prediction(forecast_2075['default_rf']) + ggtitle("RF RCP8.5 2075 Forecast")
-plot_prediction(forecast_2075['default_btree']) + ggtitle("Btree RCP8.5 2075 Forecast")
-plot_prediction(forecast_2075['default_maxent']) + ggtitle("Maxent RCP8.5 2075 Forecast")
+plot_overall_prediction("Overall GLM Predictions", "default_glm")
+plot_overall_prediction("Overall RF Predictions", "default_rf")
+plot_overall_prediction("Overall Boosted Tree Predictions", "default_btree")
+plot_overall_prediction("Overall MaxEnt Predictions", "default_maxent")
 
+comp = plot_prediction(nowcast['default_glm']) +
+  plot_prediction(nowcast['default_rf']) + 
+  plot_prediction(nowcast['default_btree']) + 
+  plot_prediction(nowcast['default_maxent']) + 
+  plot_annotation(title = "Models Nowcast Prediction Comparison") +
+  plot_layout(
+    guides = "collect",
+    axis_titles = "collect",
+    axes = "collect",
+  )
+save_png("comparison", comp, width = 16, height = 12)
 
-## ----save_pred------------------------------------------------------
-# make sure the output directory exists
-path = make_path("predictions")
-
-write_prediction(nowcast,
-                 scientificname = cfg$scientificname,
-                 version = cfg$version,
-                 year = "CURRENT",
-                 scenario = "CURRENT")
-write_prediction(forecast_2075,
-                 scientificname = cfg$scientificname,
-                 version = cfg$version,
-                 year = "2075",
-                 scenario = "RCP85")
-
-# ----copy_plots------
-plots.dir.path <- list.files(tempdir(), pattern="rs-graphics", full.names = TRUE); 
-plots.png.paths <- list.files(plots.dir.path, pattern=".png", full.names = TRUE)
-plots.png.paths <- plots.png.paths["empty" |> grepl(plots.png.paths) |> not()]
-file.copy(from=plots.png.paths, to=sprintf("./%s/%s", make_path(VERSION), basename(plots.png.paths)), overwrite=TRUE)
-
-
-
-
+#  # A tibble: 4 × 5
+#    wflow_id       accuracy boyce_cont roc_auc tss_max
+#    <chr>             <dbl>      <dbl>   <dbl>   <dbl>
+#  1 default_glm       0.647      0.912   0.722   0.357
+#  2 default_rf        0.588      0.613   0.690   0.345
+#  3 default_btree     0.672      0.431   0.714   0.374
+#  4 default_maxent    0.652      0.935   0.734   0.380
