@@ -9,7 +9,9 @@ packages = list(
            "imager", "stars", "rnaturalearth", "robis", "httr", "yaml", "vip",
            "spatialsample", "workflowsets", "effectplots", "ranger", "ggokabeito",
            "bundle", "butcher",  "tidysdm", "sf", "dplyr", "patchwork", "pdp",
-           "maxnet"),
+           "maxnet",
+           "devtools", 
+           "patchwork"),
   GITHUB = list(
     ColbyForecastingDocs = c(repos = "BigelowLab/ColbyForecastingDocs", ref = "main"))
 )
@@ -42,7 +44,7 @@ suppressPackageStartupMessages({
 slice <- dplyr::slice
 
 # Next we check the 'functions' directory for ".R" files and source those
-for (f in list.files("/home/tvnguy28/ColbyForecasting/functions", 
+for (f in list.files("./functions", 
                      pattern = glob2rx("*.R"), 
                      full.names = TRUE)) {
   source(f, echo = FALSE)
@@ -50,10 +52,10 @@ for (f in list.files("/home/tvnguy28/ColbyForecasting/functions",
 # Finally set path to the data hopefully as a sibling to the project directory
 # The data directory has top level subdirectories ("buoys", "coast", "brickman")
 # that contain data used by all, and to which you wil add your own data.
-ROOT_DATA_PATH = "~/ColbyForecasting_data"
+ROOT_DATA_PATH = "../ColbyForecasting_data"
 if (!dir.exists(ROOT_DATA_PATH)) {
   ok = dir.create(ROOT_DATA_PATH, recursive = TRUE)
-  ok = unzip("/opt/ColbyForecasting_data.zip",
+  ok = unzip("../ColbyForecasting_data.zip",
              exdir = ROOT_DATA_PATH,
              junkpaths = FALSE)
   macosx_junk = file.path(ROOT_DATA_PATH, "__MACOSX") 
