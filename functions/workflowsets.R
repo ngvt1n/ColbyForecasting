@@ -314,7 +314,8 @@ model_fit_varimp_plot = function(x,
                                          fill = Importance)) +
     ggplot2::geom_tile() +
     ggplot2::labs(y = "Workflow", 
-                  x = "Covariate")
+                  x = "Covariate") +
+    ggplot2::scale_fill_viridis_c(option="magma")
 }
 
 
