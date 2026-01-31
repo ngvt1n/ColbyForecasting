@@ -261,6 +261,7 @@ model_fits
 db = brickman_database()
 present = read_brickman(db |>  filter(scenario == "PRESENT",  interval == "mon"),
                         add = c("depth", "month")) |>
+  mutate(depth = log10(depth)) |> 
   select(all_of(cfg$keep_vars))
 nowcast = predict_stars(model_fits, present)
 nowcast
@@ -283,6 +284,7 @@ covars_rcp85_2075 = read_brickman(db |> filter(scenario == "RCP85",
                                                year == 2075, 
                                                interval == "mon"),
                                   add = c("depth", "month")) |>
+  mutate(depth = log10(depth)) |> 
   select(all_of(cfg$keep_vars))
 
 
