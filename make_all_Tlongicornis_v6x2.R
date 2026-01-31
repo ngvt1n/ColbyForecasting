@@ -330,3 +330,10 @@ file.copy(from=plots.png.paths, to=sprintf("./%s/%s", make_path(VERSION), basena
 
 
 
+#  # A tibble: 4 × 5
+#    wflow_id       accuracy boyce_cont roc_auc tss_max
+#    <chr>             <dbl>      <dbl>   <dbl>   <dbl>
+#  1 default_glm       0.664      0.797   0.665   0.293
+#  2 default_rf        0.684      0.847   0.662   0.302
+#  3 default_btree     0.692      0.545   0.695   0.306
+#  4 default_maxent    0.613      0.863   0.676   0.297
