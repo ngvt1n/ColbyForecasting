@@ -136,7 +136,7 @@ plot_prediction = function(x,
     cat("numeric\n")
     gg = ggplot2::ggplot() +
       stars::geom_stars(data = x[1]) + 
-      ggplot2::scale_fill_viridis_c(option = colors[5], 
+      ggplot2::scale_fill_viridis_c(option = colors[1], 
                                     limits = c(0,1), 
                                     na.value = "grey50") + 
       ggplot2::facet_wrap(~month)
