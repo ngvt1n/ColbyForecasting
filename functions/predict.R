@@ -175,15 +175,10 @@ plot_difference = function(
   z = y - x
   gg = ggplot2::ggplot() +
     stars::geom_stars(data = z) + 
-    scale_fill_gradient2(
-      low = "purple",      # Color for low values
-      mid = "white",     # Color for the midpoint
-      high = "orange",      # Color for high values
-      na.value = "grey50",
-      midpoint = 0       # The data value for the midpoint
-    ) +
+    scale_fill_distiller(palette = "Spectral", limits=c(-1, 1)) +
     labs(fill = paste("Δ", z |> names())) +
     ggplot2::facet_wrap(~month)
+  gg = gg + geom_mask()
   if (!is.null(coast)) {
     gg = gg + 
       ggplot2::geom_sf(data = sf::st_geometry(coast), color = coast_color)
@@ -260,6 +255,11 @@ write_prediction = function(x,
   invisible(x)
 }
 
+geom_mask = function(){
+  (function() {
+     geom_stars(data = mask, aes(alpha = ifelse(is.na(mask), 1, 0)), show.legend = FALSE)
+  })()
+}
 
 read_prediction = function(x,
                            scientificname = "Mola mola",
