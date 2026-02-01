@@ -138,3 +138,22 @@ browse_obis = function(id = "00040fa1-7acd-4731-bf1e-6dc16e30c7d4",
   if (inherits(id, "data.frame")) id = dplyr::pull(id, id)
   httr::BROWSE(file.path(base_url, id[1]))
 }
+
+fetch_dataset_title = function(dataset_id,
+                              base_url = "https://api.obis.org/v3/dataset"){
+  
+  #' Get the title of an OBIS dataset
+  #' 
+  #' @param dataset_id chr, one or more dataset IDs
+  #' @param base_url chr, the root url
+  #' @return chr vector of titles
+  
+  url = file.path(base_url, dataset_id)
+  res = httr::GET(url)
+  if (httr::status_code(res) != 200) return(NA)
+  json_data = res |> 
+    httr::content(as = "text", encoding = "UTF-8") |> 
+    fromJSON()
+  title = json_data$results$title
+  title
+}

@@ -25,7 +25,8 @@ read_observations = function(scientificname = "Temora longicornis",
   # read in the raw data
   x = fetch_obis(scientificname, ...) |>
     dplyr::mutate(month = factor(month, levels = month.abb)) |>
-    filter(!is.na(eventDate))
+    filter(!is.na(eventDate)) |> 
+    filter(dropped == FALSE)
   
   # if the user provided a non-NULL filter by year
   if (!is.null(minimum_year)){
@@ -47,6 +48,14 @@ read_observations = function(scientificname = "Temora longicornis",
     filter(scenario == "STATIC", var == "mask")
   mask = read_brickman(db)
   hitOrMiss = extract_brickman(mask, x)
+
+  dataset_titles = x |> 
+    count(dataset_id) |> 
+    _$dataset_id |> 
+    sapply(fetch_dataset_title) |> print()
+
+  x = x |> 
+    mutate(dataset_title = dataset_titles[dataset_id] |> unname())
   
   x = x |>
     filter(!is.na(hitOrMiss$value))

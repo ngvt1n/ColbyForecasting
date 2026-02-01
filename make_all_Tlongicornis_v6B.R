@@ -28,6 +28,17 @@ write_configuration(cfg)
 ## ----load obs-------------------------------------------------------
 obs = read_Tlongicornis(filter_individualCount = FALSE)
 
+## ----plot_dataset---------------------------------------
+ggplot() +
+  geom_sf(data = obs, 
+          mapping = aes(col=paste(str_wrap(dataset_title, width = 20), "\n")),
+          alpha =  0.4) +
+  geom_sf(data = coast, col = "orange")  + 
+  labs(x = "Longitude", y = "Latitude", title = "All", color = "Dataset of origin") +   
+  theme_bw() +  # <- make a simple white background
+  ggtitle("Records collected and dataset of origin")
+save_png("1_datasets")
+
 
 ## ----thin_observations----------------------------------------------
 thinned_obs = sapply(month.abb,
