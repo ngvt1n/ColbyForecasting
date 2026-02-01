@@ -15,7 +15,8 @@ standard_obis_fields = function(){
              "dataset_id", 
              "sampleSizeValue",
              "sampleSizeUnit",
-             "dynamicProperties")
+             "dynamicProperties",
+             "dropped")
   return(fields)
 }
 
