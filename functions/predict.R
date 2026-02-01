@@ -159,6 +159,41 @@ plot_prediction = function(x,
   gg
 }
 
+plot_difference = function(
+                           x, 
+                           y,
+                           coast = read_coastline(),
+                           coast_color = "white"){
+  
+  #' Plot the difference between two stars prediction objects
+  #' 
+  #' @param x stars object with one or more months along the 'month' dimension
+  #' @param y stars object with one or more months along the 'month' dimension
+  #' @param ... other arguments for `plot_prediction()`
+  #' @return a ggplot2 object
+  
+  z = y - x
+  gg = ggplot2::ggplot() +
+    stars::geom_stars(data = z) + 
+    scale_fill_gradient2(
+      low = "purple",      # Color for low values
+      mid = "white",     # Color for the midpoint
+      high = "orange",      # Color for high values
+      na.value = "grey50",
+      midpoint = 0       # The data value for the midpoint
+    ) +
+    labs(fill = paste("Δ", z |> names())) +
+    ggplot2::facet_wrap(~month)
+  if (!is.null(coast)) {
+    gg = gg + 
+      ggplot2::geom_sf(data = sf::st_geometry(coast), color = coast_color)
+  } else {
+    gg = gg + 
+      ggplot2::coord_sf(crs = sf::st_crs(x))
+  }
+  gg
+}
+
 plot_overall_prediction = function(
   #' Compose multiple prediction plots together, requires the patchwork package
   #' 

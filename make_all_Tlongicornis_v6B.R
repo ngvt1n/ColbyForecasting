@@ -329,16 +329,20 @@ plot_overall_prediction("Overall RF Predictions", "default_rf")
 plot_overall_prediction("Overall Boosted Tree Predictions", "default_btree")
 plot_overall_prediction("Overall MaxEnt Predictions", "default_maxent")
 
+plot_difference(nowcast['default_glm'], forecast_8.5_2075['default_glm']) + ggtitle("GLM prediction of changes from nowcast to RCP8.5 2075")
+save_png("glm_now-2075-85")
+plot_difference(nowcast['default_rf'], forecast_8.5_2075['default_rf']) + ggtitle("RF prediction of changes from nowcast to RCP8.5 2075")
+save_png("rf_now-2075-85")
+plot_difference(nowcast['default_btree'], forecast_8.5_2075['default_btree']) + ggtitle("Boosted Tree prediction of changes from nowcast to RCP8.5 2075")
+save_png("btree_now-2075-85")
+plot_difference(nowcast['default_maxent'], forecast_8.5_2075['default_maxent']) + ggtitle("MaxEnt prediction of changes from nowcast to RCP8.5 2075")
+save_png("maxent_now-2075-85")
+
 comp = plot_prediction(nowcast['default_glm']) +
   plot_prediction(nowcast['default_rf']) + 
   plot_prediction(nowcast['default_btree']) + 
   plot_prediction(nowcast['default_maxent']) + 
-  plot_annotation(title = "Models Nowcast Prediction Comparison") +
-  plot_layout(
-    guides = "collect",
-    axis_titles = "collect",
-    axes = "collect",
-  )
+  plot_annotation(title = "Models Nowcast Prediction Comparison")
 save_png("comparison", comp, width = 16, height = 12)
 
 #  # A tibble: 4 × 5
