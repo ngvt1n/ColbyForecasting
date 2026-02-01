@@ -312,6 +312,14 @@ forecast_4.5_2075 = predict_stars(model_fits, covars_rcp45_2075)
 forecast_8.5_2055 = predict_stars(model_fits, covars_rcp85_2055)
 forecast_8.5_2075 = predict_stars(model_fits, covars_rcp85_2075)
 
+plot_difference(nowcast['default_glm'], forecast_8.5_2075['default_glm']) + ggtitle("GLM prediction of changes from nowcast to RCP8.5 2075")
+save_png("glm_now-2075-85")
+plot_difference(nowcast['default_rf'], forecast_8.5_2075['default_rf']) + ggtitle("RF prediction of changes from nowcast to RCP8.5 2075")
+save_png("rf_now-2075-85")
+plot_difference(nowcast['default_btree'], forecast_8.5_2075['default_btree']) + ggtitle("Boosted Tree prediction of changes from nowcast to RCP8.5 2075")
+save_png("btree_now-2075-85")
+plot_difference(nowcast['default_maxent'], forecast_8.5_2075['default_maxent']) + ggtitle("MaxEnt prediction of changes from nowcast to RCP8.5 2075")
+save_png("maxent_now-2075-85")
 
 plot_overall_prediction("Overall GLM Predictions", "default_glm")
 plot_overall_prediction("Overall RF Predictions", "default_rf")
@@ -324,7 +332,6 @@ comp = plot_prediction(nowcast['default_glm']) +
   plot_prediction(nowcast['default_maxent']) + 
   plot_annotation(title = "Models Nowcast Prediction Comparison") +
   plot_layout(
-    guides = "collect",
     axis_titles = "collect",
     axes = "collect",
   )
